@@ -46,3 +46,15 @@ def get_df_of_data_portal_data(
     else:
         df = pd.read_parquet(raw_file_path)
     return df
+
+
+def get_cc_real_estate_sales_data(
+    raw_file_path: Union[str, None] = None, force_repull: bool = False
+) -> pd.DataFrame:
+    df = get_df_of_data_portal_data(
+        file_name="cc_real_estate_sales_raw.parquet.gzip",
+        url="https://datacatalog.cookcountyil.gov/api/views/93st-4bxh/rows.csv?accessType=DOWNLOAD",
+        raw_file_path=raw_file_path,
+        force_repull=force_repull,
+    )
+    return df
