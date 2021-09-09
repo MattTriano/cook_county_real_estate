@@ -60,9 +60,23 @@ def get_cc_real_estate_sales_data(
     return df
 
 
-def clean_cc_arms_length_col(df: pd.DataFrame) -> pd.DataFrame:
+def clean_cc_sales_arms_length_col(df: pd.DataFrame) -> pd.DataFrame:
     if 9 in df["Arms' length"].unique():
         arms_length_map = {0: "no", 1: "yes", 9: "unknown"}
         df["Arms' length"] = df["Arms' length"].map(arms_length_map)
-        df["Arms' length"] = df["Arms' length"].astype("category")
+    df["Arms' length"] = df["Arms' length"].astype("category")
+    return df
+
+
+def clean_cc_sales_deed_type_col(df: pd.DataFrame) -> pd.DataFrame:
+    if "Warranty" not in df["Deed type"].unique():
+        deed_type_map = {
+            "W": "Warranty",
+            "O": "Other",
+            "o": "Other",
+            "T": "Trustee",
+            "Y": "Trustee",
+        }
+        df["Deed type"] = df["Deed type"].map(deed_type_map)
+    df["Deed type"] = df["Deed type"].astype("category")
     return df
