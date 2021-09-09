@@ -80,3 +80,15 @@ def clean_cc_sales_deed_type_col(df: pd.DataFrame) -> pd.DataFrame:
         df["Deed type"] = df["Deed type"].map(deed_type_map)
     df["Deed type"] = df["Deed type"].astype("category")
     return df
+
+
+def clean_cc_sales_date_cols(
+    df: pd.DataFrame, date_cols: Union[List, None] = None
+) -> pd.DataFrame:
+    if date_cols is None:
+        date_cols = df.head(2).filter(regex="[Dd][Aa][Tt][Ee]$").columns
+    for date_col in date_cols:
+        df[date_col] = pd.to_datetime(
+            df[date_col], format="%m/%d/%Y %I:%M:%S %p", errors="coerce"
+        )
+    return df
