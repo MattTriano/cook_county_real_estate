@@ -58,3 +58,11 @@ def get_cc_real_estate_sales_data(
         force_repull=force_repull,
     )
     return df
+
+
+def clean_cc_arms_length_col(df: pd.DataFrame) -> pd.DataFrame:
+    if 9 in df["Arms' length"].unique():
+        arms_length_map = {0: "no", 1: "yes", 9: "unknown"}
+        df["Arms' length"] = df["Arms' length"].map(arms_length_map)
+        df["Arms' length"] = df["Arms' length"].astype("category")
+    return df
