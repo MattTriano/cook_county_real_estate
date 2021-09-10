@@ -48,11 +48,11 @@ def get_df_of_data_portal_data(
     return df
 
 
-def get_cc_real_estate_sales_data(
+def get_raw_cc_real_estate_sales_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> pd.DataFrame:
     df = get_df_of_data_portal_data(
-        file_name="cc_real_estate_sales_raw.parquet.gzip",
+        file_name="cc_real_estate_sales.parquet.gzip",
         url="https://datacatalog.cookcountyil.gov/api/views/93st-4bxh/rows.csv?accessType=DOWNLOAD",
         raw_file_path=raw_file_path,
         force_repull=force_repull,
@@ -60,7 +60,7 @@ def get_cc_real_estate_sales_data(
     return df
 
 
-def clean_cc_sales_arms_length_col(df: pd.DataFrame) -> pd.DataFrame:
+def clean_cc_real_estate_sales_arms_length_col(df: pd.DataFrame) -> pd.DataFrame:
     if 9 in df["Arms' length"].unique():
         arms_length_map = {0: "no", 1: "yes", 9: "unknown"}
         df["Arms' length"] = df["Arms' length"].map(arms_length_map)
@@ -68,7 +68,7 @@ def clean_cc_sales_arms_length_col(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def clean_cc_sales_deed_type_col(df: pd.DataFrame) -> pd.DataFrame:
+def clean_cc_real_estate_sales_deed_type_col(df: pd.DataFrame) -> pd.DataFrame:
     if "Warranty" not in df["Deed type"].unique():
         deed_type_map = {
             "W": "Warranty",
@@ -82,7 +82,7 @@ def clean_cc_sales_deed_type_col(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def clean_cc_sales_date_cols(
+def clean_cc_real_estate_sales_date_cols(
     df: pd.DataFrame, date_cols: Union[List, None] = None
 ) -> pd.DataFrame:
     if date_cols is None:
@@ -91,4 +91,28 @@ def clean_cc_sales_date_cols(
         df[date_col] = pd.to_datetime(
             df[date_col], format="%m/%d/%Y %I:%M:%S %p", errors="coerce"
         )
+    return df
+
+
+def get_clean_cc_real_estate_sales_data(
+    clean_file_path: Union[str, bool] = None,
+    raw_file_path: Union[str, bool] = None,
+    force_reclean: bool = False,
+    force_repull: bool = False,
+):
+    if clean_file_path is None:
+        file_dir = os.path.join(
+            os.path.expanduser("~"), "projects", "cook_county_real_estate", "data_clean"
+        )
+        clean_file_path = os.path.join(file_dir, "cc_real_estate_sales.parquet.gzip")
+    if os.path.isfile(clean_file_path) and not force_reclean and not force_repull:
+        df = pd.read_parquet(file_path)
+        return df
+    elif force_reclean and not force_repull:
+        df = clean_cc_real_estate_sales_data(raw_file_path=raw_file_path)
+    else:
+        df = clean_cc_real_estate_sales_data(
+            raw_file_path=raw_file_path, force_repull=force_repull
+        )
+    df.to_parquet(clean_file_path, compression="gzip")
     return df
