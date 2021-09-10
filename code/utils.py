@@ -156,11 +156,26 @@ def get_clean_cc_real_estate_sales_data(
 
 def get_raw_cc_residential_neighborhood_geodata(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
-) -> pd.DataFrame:
+) -> gpd.GeoDataFrame:
     gdf = get_gdf_of_data_portal_data(
         file_name="cc_residential_neighborhood_boundaries.parquet.gzip",
         url="https://datacatalog.cookcountyil.gov/api/geospatial/wyzt-dzf8?method=export&format=Shapefile",
         raw_file_path=raw_file_path,
         force_repull=force_repull,
     )
+    return gdf
+
+
+def clean_cc_residential_neighborhood_geodata(
+    raw_file_path: Union[str, None] = None, force_repull: bool = False
+) -> gpd.GeoDataFrame:
+    gdf = get_raw_cc_residential_neighborhood_geodata(
+        raw_file_path=raw_file_path, force_repull=force_repull
+    )
+    gdf["triad_code"] = gdf["triad_code"].astype("category")
+    gdf["triad_name"] = gdf["triad_name"].astype("category")
+    gdf["township_c"] = gdf["township_c"].astype("category")
+    gdf["township_n"] = gdf["township_n"].astype("category")
+    gdf["nbhd"] = gdf["nbhd"].astype("category")
+    gdf = gdf.convert_dtypes()
     return gdf
