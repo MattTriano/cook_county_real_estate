@@ -94,6 +94,19 @@ def clean_cc_real_estate_sales_date_cols(
     return df
 
 
+def clean_cc_real_estate_sales_data(
+    raw_file_path: Union[str, None] = None, force_repull: bool = False
+) -> pd.DataFrame:
+    cc_sales_df = get_raw_cc_real_estate_sales_data(
+        raw_file_path=raw_file_path, force_repull=force_repull
+    )
+    cc_sales_df = clean_cc_real_estate_sales_arms_length_col(df=cc_sales_df)
+    cc_sales_df = clean_cc_real_estate_sales_deed_type_col(df=cc_sales_df)
+    cc_sales_df = clean_cc_real_estate_sales_date_cols(df=cc_sales_df)
+    cc_sales_df = cc_sales_df.convert_dtypes()
+    return cc_sales_df
+
+
 def get_clean_cc_real_estate_sales_data(
     clean_file_path: Union[str, bool] = None,
     raw_file_path: Union[str, bool] = None,
