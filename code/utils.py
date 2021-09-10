@@ -48,6 +48,28 @@ def get_df_of_data_portal_data(
     return df
 
 
+def get_gdf_of_data_portal_data(
+    file_name: str,
+    url: str,
+    raw_file_path: Union[str, None] = None,
+    force_repull: bool = False,
+) -> gpd.GeoDataFrame:
+    if raw_file_path is None:
+        raw_file_dir = os.path.join(
+            os.path.expanduser("~"), "projects", "cook_county_real_estate", "data_raw"
+        )
+        raw_file_path = os.path.join(raw_file_dir, file_name)
+    else:
+        raw_file_dir = os.path.dirname(raw_file_path)
+    os.makedirs(raw_file_dir, exist_ok=True)
+    if not os.path.isfile(raw_file_path) or force_repull:
+        gdf = gpd.read_file(url)
+        gdf.to_parquet(raw_file_path, compression="gzip")
+    else:
+        gdf = gpd.read_parquet(raw_file_path)
+    return gdf
+
+
 def get_raw_cc_real_estate_sales_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> pd.DataFrame:
