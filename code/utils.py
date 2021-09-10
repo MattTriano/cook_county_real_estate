@@ -17,7 +17,8 @@ def get_df_column_details(df: pd.DataFrame) -> pd.DataFrame:
             ],
             "null_vals": [df[col].isnull().sum() for col in col_list],
             "pct_null": [
-                round(100 * df[col].isnull().sum() / n_rows, 4) for col in col_list
+                round(100 * df[col].isnull().sum() / n_rows, 4)
+                for col in col_list
             ],
         }
     )
@@ -34,7 +35,10 @@ def get_df_of_data_portal_data(
 ) -> pd.DataFrame:
     if raw_file_path is None:
         raw_file_dir = os.path.join(
-            os.path.expanduser("~"), "projects", "cook_county_real_estate", "data_raw"
+            os.path.expanduser("~"),
+            "projects",
+            "cook_county_real_estate",
+            "data_raw",
         )
         raw_file_path = os.path.join(raw_file_dir, file_name)
     else:
@@ -57,7 +61,10 @@ def get_gdf_of_data_portal_data(
 ) -> gpd.GeoDataFrame:
     if raw_file_path is None:
         raw_file_dir = os.path.join(
-            os.path.expanduser("~"), "projects", "cook_county_real_estate", "data_raw"
+            os.path.expanduser("~"),
+            "projects",
+            "cook_county_real_estate",
+            "data_raw",
         )
         raw_file_path = os.path.join(raw_file_dir, file_name)
     else:
@@ -83,7 +90,9 @@ def get_raw_cc_real_estate_sales_data(
     return df
 
 
-def clean_cc_real_estate_sales_arms_length_col(df: pd.DataFrame) -> pd.DataFrame:
+def clean_cc_real_estate_sales_arms_length_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
     if 9 in df["Arms' length"].unique():
         arms_length_map = {0: "no", 1: "yes", 9: "unknown"}
         df["Arms' length"] = df["Arms' length"].map(arms_length_map)
@@ -135,14 +144,23 @@ def get_clean_cc_real_estate_sales_data(
     raw_file_path: Union[str, bool] = None,
     force_reclean: bool = False,
     force_repull: bool = False,
-):
+) -> pd.DataFrame:
     if clean_file_path is None:
         file_dir = os.path.join(
-            os.path.expanduser("~"), "projects", "cook_county_real_estate", "data_clean"
+            os.path.expanduser("~"),
+            "projects",
+            "cook_county_real_estate",
+            "data_clean",
         )
-        clean_file_path = os.path.join(file_dir, "cc_real_estate_sales.parquet.gzip")
-    if os.path.isfile(clean_file_path) and not force_reclean and not force_repull:
-        df = pd.read_parquet(file_path)
+        clean_file_path = os.path.join(
+            file_dir, "cc_real_estate_sales.parquet.gzip"
+        )
+    if (
+        os.path.isfile(clean_file_path)
+        and not force_reclean
+        and not force_repull
+    ):
+        df = pd.read_parquet(clean_file_path)
         return df
     elif force_reclean and not force_repull:
         df = clean_cc_real_estate_sales_data(raw_file_path=raw_file_path)
@@ -177,5 +195,39 @@ def clean_cc_residential_neighborhood_geodata(
     gdf["township_c"] = gdf["township_c"].astype("category")
     gdf["township_n"] = gdf["township_n"].astype("category")
     gdf["nbhd"] = gdf["nbhd"].astype("category")
-    gdf = gdf.convert_dtypes()
+    return gdf
+
+
+def get_clean_cc_residential_neighborhood_geodata(
+    clean_file_path: Union[str, bool] = None,
+    raw_file_path: Union[str, bool] = None,
+    force_reclean: bool = False,
+    force_repull: bool = False,
+) -> gpd.GeoDataFrame:
+    if clean_file_path is None:
+        file_dir = os.path.join(
+            os.path.expanduser("~"),
+            "projects",
+            "cook_county_real_estate",
+            "data_clean",
+        )
+        clean_file_path = os.path.join(
+            file_dir, "cc_residential_neighborhood_boundaries.parquet.gzip"
+        )
+    if (
+        os.path.isfile(clean_file_path)
+        and not force_reclean
+        and not force_repull
+    ):
+        gdf = gpd.read_parquet(clean_file_path)
+        return gdf
+    elif force_reclean and not force_repull:
+        gdf = clean_cc_residential_neighborhood_geodata(
+            raw_file_path=raw_file_path
+        )
+    else:
+        gdf = clean_cc_residential_neighborhood_geodata(
+            raw_file_path=raw_file_path, force_repull=force_repull
+        )
+    gdf.to_parquet(clean_file_path, compression="gzip")
     return gdf
