@@ -17,8 +17,7 @@ def get_df_column_details(df: pd.DataFrame) -> pd.DataFrame:
             ],
             "null_vals": [df[col].isnull().sum() for col in col_list],
             "pct_null": [
-                round(100 * df[col].isnull().sum() / n_rows, 4)
-                for col in col_list
+                round(100 * df[col].isnull().sum() / n_rows, 4) for col in col_list
             ],
         }
     )
@@ -152,14 +151,8 @@ def get_clean_cc_real_estate_sales_data(
             "cook_county_real_estate",
             "data_clean",
         )
-        clean_file_path = os.path.join(
-            file_dir, "cc_real_estate_sales.parquet.gzip"
-        )
-    if (
-        os.path.isfile(clean_file_path)
-        and not force_reclean
-        and not force_repull
-    ):
+        clean_file_path = os.path.join(file_dir, "cc_real_estate_sales.parquet.gzip")
+    if os.path.isfile(clean_file_path) and not force_reclean and not force_repull:
         df = pd.read_parquet(clean_file_path)
         return df
     elif force_reclean and not force_repull:
@@ -214,20 +207,43 @@ def get_clean_cc_residential_neighborhood_geodata(
         clean_file_path = os.path.join(
             file_dir, "cc_residential_neighborhood_boundaries.parquet.gzip"
         )
-    if (
-        os.path.isfile(clean_file_path)
-        and not force_reclean
-        and not force_repull
-    ):
+    if os.path.isfile(clean_file_path) and not force_reclean and not force_repull:
         gdf = gpd.read_parquet(clean_file_path)
         return gdf
     elif force_reclean and not force_repull:
-        gdf = clean_cc_residential_neighborhood_geodata(
-            raw_file_path=raw_file_path
-        )
+        gdf = clean_cc_residential_neighborhood_geodata(raw_file_path=raw_file_path)
     else:
         gdf = clean_cc_residential_neighborhood_geodata(
             raw_file_path=raw_file_path, force_repull=force_repull
         )
     gdf.to_parquet(clean_file_path, compression="gzip")
     return gdf
+
+
+def get_raw_cc_residential_property_characteristics_data(
+    raw_file_path: Union[str, None] = None, force_repull: bool = False
+) -> pd.DataFrame:
+    df = get_df_of_data_portal_data(
+        file_name="cc_residential_property_characteristics.parquet.gzip",
+        url="https://datacatalog.cookcountyil.gov/api/views/bcnq-qi2z/rows.csv?accessType=DOWNLOAD",
+        raw_file_path=raw_file_path,
+        force_repull=force_repull,
+    )
+    return df
+
+def clean_cc_residential_property_characteristics_data(
+    raw_file_path: Union[str, None] = None, force_repull: bool = False
+) -> gpd.GeoDataFrame:
+    df = get_raw_cc_residential_property_characteristics_data(
+        raw_file_path=raw_file_path, force_repull=force_repull
+    )
+    df = df.convert_dtypes()
+    categorical_cols = [
+        "Property Class",
+    ]
+    
+    
+def dtypeset_simple_categorical_cols(df: pd.DataFrame, col_list: List) -> pd.DataFrame:
+    for col in col_list:
+        df[col] = df[col].astype("category")
+    return df
