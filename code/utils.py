@@ -231,6 +231,7 @@ def get_raw_cc_residential_property_characteristics_data(
     )
     return df
 
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -238,11 +239,58 @@ def clean_cc_residential_property_characteristics_data(
         raw_file_path=raw_file_path, force_repull=force_repull
     )
     df = df.convert_dtypes()
-    categorical_cols = [
-        "Property Class",
+    df["Property Class"] = df["Property Class"].astype("category")
+    is_condo_mask = df["Property Class"] == 299
+    condo_df = df.loc[is_condo_mask].copy()
+    condo_df = condo_df.reset_index(drop=True)
+    non_condo_df = df.loc[~is_condo_mask].copy()
+    non_condo_df = non_condo_df.reset_index(drop=True)
+
+
+def process_condo_property_characteristicts_data(df: pd.DataFrame) -> pd.DataFrame:
+    null_cols = [
+        "Building Square Feet",
+        "Renovation",
+        "Site Desireability",
+        "Garage 1 Size",
+        "Garage 1 Material",
+        "Garage 1 Attachment",
+        "Garage 1 Area",
+        "Garage 2 Size",
+        "Garage 2 Material",
+        "Construction Quality",
+        "Garage 2 Attachment",
+        "Other Improvements",
+        "Repair Condition",
+        "Multi Code",
+        "Number of Commercial Units",
+        "Square root of improvement size",
+        "Total Building Square Feet",
+        "Multi-Family Indicator",
+        "Improvement Size Squared",
+        "Garage 2 Area",
+        "Cathedral Ceiling",
+        "Garage indicator",
+        "Half Baths",
+        "Type of Residence",
+        "Apartments",
+        "Wall Material",
+        "Roof Material",
+        "Rooms",
+        "Bedrooms",
+        "Basement",
+        "Design Plan",
+        "Central Heating",
+        "Other Heating",
+        "Central Air",
+        "Fireplaces",
+        "Attic Type",
+        "Basement Finish",
     ]
-    
-    
+    df = df.drop(columns=null_cols)
+    return df
+
+
 def dtypeset_simple_categorical_cols(df: pd.DataFrame, col_list: List) -> pd.DataFrame:
     for col in col_list:
         df[col] = df[col].astype("category")
