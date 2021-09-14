@@ -1,6 +1,7 @@
 import os
 from typing import Dict, List, Union, Optional
 
+import missingno as msno
 import pandas as pd
 import geopandas as gpd
 
@@ -17,13 +18,36 @@ def get_df_column_details(df: pd.DataFrame) -> pd.DataFrame:
             ],
             "null_vals": [df[col].isnull().sum() for col in col_list],
             "pct_null": [
-                round(100 * df[col].isnull().sum() / n_rows, 4) for col in col_list
+                round(100 * df[col].isnull().sum() / n_rows, 4)
+                for col in col_list
             ],
         }
     )
     df_details = df_details.sort_values(by="unique_vals")
     df_details = df_details.reset_index(drop=True)
     return df_details
+
+
+def plot_highly_missingness_correlated_cols(
+    col: str, plot_df: pd.DataFrame, i: int = 0, positive_corr: bool = True
+) -> None:
+    plot_df = plot_df.copy()
+    plot_df = plot_df.sort_values(by=col)
+    plot_df = plot_df.reset_index(drop=True)
+
+    plot_notnull_df = plot_df.loc[plot_df[col].notnull()].copy()
+    plot_deets_df = get_df_column_details(plot_notnull_df)
+    plot_deets_df = plot_deets_df.sort_values(
+        by="pct_null", ascending=positive_corr
+    )
+    plot_deets_df = plot_deets_df.reset_index(drop=True)
+
+    view_cols = [col]
+    other_cols = list(plot_deets_df["feature"][i : i + 49])
+    other_cols = [c for c in other_cols if c != col]
+    view_cols.extend(other_cols)
+
+    msno.matrix(plot_df[view_cols])
 
 
 def get_df_of_data_portal_data(
@@ -151,8 +175,14 @@ def get_clean_cc_real_estate_sales_data(
             "cook_county_real_estate",
             "data_clean",
         )
-        clean_file_path = os.path.join(file_dir, "cc_real_estate_sales.parquet.gzip")
-    if os.path.isfile(clean_file_path) and not force_reclean and not force_repull:
+        clean_file_path = os.path.join(
+            file_dir, "cc_real_estate_sales.parquet.gzip"
+        )
+    if (
+        os.path.isfile(clean_file_path)
+        and not force_reclean
+        and not force_repull
+    ):
         df = pd.read_parquet(clean_file_path)
         return df
     elif force_reclean and not force_repull:
@@ -207,11 +237,17 @@ def get_clean_cc_residential_neighborhood_geodata(
         clean_file_path = os.path.join(
             file_dir, "cc_residential_neighborhood_boundaries.parquet.gzip"
         )
-    if os.path.isfile(clean_file_path) and not force_reclean and not force_repull:
+    if (
+        os.path.isfile(clean_file_path)
+        and not force_reclean
+        and not force_repull
+    ):
         gdf = gpd.read_parquet(clean_file_path)
         return gdf
     elif force_reclean and not force_repull:
-        gdf = clean_cc_residential_neighborhood_geodata(raw_file_path=raw_file_path)
+        gdf = clean_cc_residential_neighborhood_geodata(
+            raw_file_path=raw_file_path
+        )
     else:
         gdf = clean_cc_residential_neighborhood_geodata(
             raw_file_path=raw_file_path, force_repull=force_repull
@@ -247,7 +283,9 @@ def clean_cc_residential_property_characteristics_data(
     non_condo_df = non_condo_df.reset_index(drop=True)
 
 
-def process_condo_property_characteristicts_data(df: pd.DataFrame) -> pd.DataFrame:
+def process_condo_property_characteristicts_data(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
     null_cols = [
         "Building Square Feet",
         "Renovation",
@@ -291,7 +329,19 @@ def process_condo_property_characteristicts_data(df: pd.DataFrame) -> pd.DataFra
     return df
 
 
-def dtypeset_simple_categorical_cols(df: pd.DataFrame, col_list: List) -> pd.DataFrame:
+def dtypeset_simple_categorical_cols(
+    df: pd.DataFrame, col_list: List
+) -> pd.DataFrame:
     for col in col_list:
         df[col] = df[col].astype("category")
+    return df
+
+
+def clean_cc_residential_prop_chars_renovation_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    if "yes" not in df["Renovation"].unique():
+        renovation_map = {1: "yes", 2: "no"}
+        df["Renovation"] = df["Renovation"].map(renovation_map)
+    df["Renovation"] = df["Renovation"].astype("category")
     return df
