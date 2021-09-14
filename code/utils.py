@@ -345,3 +345,47 @@ def clean_cc_residential_prop_chars_renovation_col(
         df["Renovation"] = df["Renovation"].map(renovation_map)
     df["Renovation"] = df["Renovation"].astype("category")
     return df
+
+
+def clean_cc_residential_prop_chars_condo_class_factor_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    if "residential_condominium" not in df["Condo Class Factor"].unique():
+        condo_class_factor_map = {
+            200: "residential_land",
+            299: "residential_condominium",
+        }
+        df["Condo Class Factor"] = df["Condo Class Factor"].map(
+            condo_class_factor_map
+        )
+    df["Condo Class Factor"] = df["Condo Class Factor"].astype("category")
+    return df
+
+
+def clean_cc_residential_prop_chars_property_class_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    property_class_map = {
+        200: "residential_land",
+        201: "residential_garage",
+        202: "one_story_residence__any_age__lt_1k_sq_ft",
+        203: "one_story_residence__any_age__1k_to_1800_sq_ft",
+        204: "one_story_residence__any_age__gt_1800_sq_ft",
+        205: "two_plus_story_residence__gt_62_yrs_old__lt_2200_sq_ft",
+        206: "two_plus_story_residence__gt_62_yrs_old__2201_to_4999_sq_ft",
+        207: "two_plus_story_residence__lte_62_yrs_old__lte_2000_sq_ft",
+        278: "two_plus_story_residence__lte_62_yrs_old__2001_to_3800_sq_ft",
+        208: "two_plus_story_residence__lte_62_yrs_old__3801_to_4999_sq_ft",
+        209: "two_plus_story_residence__any_age__gte_5000_sq_ft",
+        210: "old_style_row_house__gt_62_yrs_old",
+        211: "appartment_bldg_w_2_to_6_units__any_age",
+        212: "mixed_use_bldg_w_lte_6_units__any_age__gte_20k_sq_ft",
+        234: "split_level_residence_w_a_level_below_ground__any_age__any_sq_ft",
+        241: "vacant_land_under_common_ownership_adjacent_to_residence",
+        295: "individually_owned_townhowm_or_row_house__lte_62_years_old",
+        299: "residential_condominium",
+    }
+    if "residential_condominium" not in df["Property Class"].unique():
+        df["Property Class"] = df["Property Class"].map(property_class_map)
+    df["Property Class"] = df["Property Class"].astype("category")
+    return df
