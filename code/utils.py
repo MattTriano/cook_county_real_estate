@@ -385,7 +385,10 @@ def clean_cc_residential_prop_chars_property_class_col(
         295: "individually_owned_townhowm_or_row_house__lte_62_years_old",
         299: "residential_condominium",
     }
-    if "residential_condominium" not in df["Property Class"].unique():
-        df["Property Class"] = df["Property Class"].map(property_class_map)
+    if "Property Class Descr" not in list(df.columns):
+        df["Property Class Descr"] = df["Property Class"].map(
+            property_class_map
+        )
     df["Property Class"] = df["Property Class"].astype("category")
+    df["Property Class Descr"] = df["Property Class Descr"].astype("category")
     return df
