@@ -392,3 +392,12 @@ def clean_cc_residential_prop_chars_property_class_col(
     df["Property Class"] = df["Property Class"].astype("category")
     df["Property Class Descr"] = df["Property Class Descr"].astype("category")
     return df
+
+
+def clean_cc_residential_prop_chars_neighborhood_code_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    df["Neighborhood Code"] = df["Neighborhood Code"].astype("string")
+    df["Neighborhood Code"] = df["Neighborhood Code"].str.zfill(3)
+    df["Neighborhood Code"] = df["Neighborhood Code"].astype("category")
+    return df
