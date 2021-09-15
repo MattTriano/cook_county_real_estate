@@ -411,6 +411,28 @@ def clean_cc_residential_prop_chars_town_code_col(
     return df
 
 
+def clean_cc_residential_prop_chars_type_of_residence_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    type_of_residence_map = {
+        1: "one story",
+        2: "two story",
+        3: "three story or higher",
+        4: "split level",
+        5: "1.5 story (one story w/ partial livable attic; 50% sq footage of 1st floor)",
+        6: "1.6 story (one story w/ partial livable attic; 60% sq footage of 1st floor)",
+        7: "1.7 story (one story w/ partial livable attic; 70% sq footage of 1st floor)",
+        8: "1.8 story (one story w/ partial livable attic; 80% sq footage of 1st floor)",
+        9: "1.9 story (one story w/ partial livable attic; 90% sq footage of 1st floor)",
+    }
+    if "one story" not in df["Type of Residence"].unique():
+        df["Type of Residence"] = df["Type of Residence"].map(
+            type_of_residence_map
+        )
+    df["Type of Residence"] = df["Type of Residence"].astype("category")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -421,4 +443,5 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_property_class_col(df)
     df = clean_cc_residential_prop_chars_neighborhood_code_col(df)
     df = clean_cc_residential_prop_chars_town_code_col(df)
+    df = clean_cc_residential_prop_chars_type_of_residence_col(df)
     return df
