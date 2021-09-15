@@ -401,3 +401,24 @@ def clean_cc_residential_prop_chars_neighborhood_code_col(
     df["Neighborhood Code"] = df["Neighborhood Code"].str.zfill(3)
     df["Neighborhood Code"] = df["Neighborhood Code"].astype("category")
     return df
+
+
+def clean_cc_residential_prop_chars_town_code_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    df["Town Code"] = df["Town Code"].astype("string")
+    df["Town Code"] = df["Town Code"].astype("category")
+    return df
+
+
+def clean_cc_residential_property_characteristics_data(
+    raw_file_path: Union[str, None] = None, force_repull: bool = False
+) -> gpd.GeoDataFrame:
+    df = get_raw_cc_residential_property_characteristics_data(
+        raw_file_path=raw_file_path, force_repull=force_repull
+    )
+    df = cc_res_prop_char_df.convert_dtypes()
+    df = clean_cc_residential_prop_chars_property_class_col(df)
+    df = clean_cc_residential_prop_chars_neighborhood_code_col(df)
+    df = clean_cc_residential_prop_chars_town_code_col(df)
+    return df
