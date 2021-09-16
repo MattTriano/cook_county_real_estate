@@ -531,6 +531,22 @@ def clean_cc_residential_prop_chars_central_heating_col(
     return df
 
 
+def clean_cc_residential_prop_chars_central_heating_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    other_heating_map = {
+        1: "Floor furnace",
+        2: "Unit heater",
+        3: "Stove",
+        4: "Solar",
+        5: "none",
+    }
+    if "none" not in df["Other Heating"].unique():
+        df["Other Heating"] = df["Other Heating"].map(other_heating_map)
+    df["Other Heating"] = df["Other Heating"].astype("category")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -549,5 +565,6 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_bedrooms_col(df)
     df = clean_cc_residential_prop_chars_basement_col(df)
     df = clean_cc_residential_prop_chars_basement_finish_col(df)
+    df = clean_cc_residential_prop_chars_central_heating_col(df)
     df = clean_cc_residential_prop_chars_central_heating_col(df)
     return df
