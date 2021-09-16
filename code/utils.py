@@ -433,6 +433,15 @@ def clean_cc_residential_prop_chars_type_of_residence_col(
     return df
 
 
+def clean_cc_residential_prop_chars_apartments_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    bad_apartment_value_mask = (df["Apartments"] < 0) | (df["Apartments"] > 6)
+    df.loc[bad_apartment_value_mask, "Apartments"] = None
+    df["Apartments"] = df["Apartments"].astype("Int8")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -444,4 +453,5 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_neighborhood_code_col(df)
     df = clean_cc_residential_prop_chars_town_code_col(df)
     df = clean_cc_residential_prop_chars_type_of_residence_col(df)
+    df = clean_cc_residential_prop_chars_apartments_col(df)
     return df
