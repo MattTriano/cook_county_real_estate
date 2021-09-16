@@ -483,6 +483,15 @@ def clean_cc_residential_prop_chars_rooms_col(
     return df
 
 
+def clean_cc_residential_prop_chars_bedrooms_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    bad_bedrooms_value_mask = df["Bedrooms"] > 50
+    df.loc[bad_bedrooms_value_mask, "Bedrooms"] = None
+    df["Bedrooms"] = df["Bedrooms"].astype("Int8")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -498,4 +507,5 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_wall_material_col(df)
     df = clean_cc_residential_prop_chars_roof_material_col(df)
     df = clean_cc_residential_prop_chars_rooms_col(df)
+    df = clean_cc_residential_prop_chars_bedrooms_col(df)
     return df
