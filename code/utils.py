@@ -442,6 +442,21 @@ def clean_cc_residential_prop_chars_apartments_col(
     return df
 
 
+def clean_cc_residential_prop_chars_wall_material_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    wall_material_map = {
+        1: "Wood",
+        2: "Masonry",
+        3: "Wood and Masonry",
+        4: "Stucco",
+    }
+    if "Wood" not in df["Wall Material"].unique():
+        df["Wall Material"] = df["Wall Material"].map(wall_material_map)
+    df["Wall Material"] = df["Wall Material"].astype("category")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
