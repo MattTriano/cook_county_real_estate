@@ -492,6 +492,16 @@ def clean_cc_residential_prop_chars_bedrooms_col(
     return df
 
 
+def clean_cc_residential_prop_chars_basement_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    basement_map = {1: "Full", 2: "Slab", 3: "Partial", 4: "Crawl"}
+    if "Full" not in df["Basement"].unique():
+        df["Basement"] = df["Basement"].map(basement_map)
+    df["Basement"] = df["Basement"].astype("category")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
