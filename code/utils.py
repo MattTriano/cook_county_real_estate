@@ -457,6 +457,23 @@ def clean_cc_residential_prop_chars_wall_material_col(
     return df
 
 
+def clean_cc_residential_prop_chars_roof_material_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    roof_material_map = {
+        1: "Shingle/Asphalt",
+        2: "Tar and Gravel",
+        3: "Slate",
+        4: "Shake",
+        5: "Tile",
+        6: "Other",
+    }
+    if "Shingle/Asphalt" not in df["Roof Material"].unique():
+        df["Roof Material"] = df["Roof Material"].map(roof_material_map)
+    df["Roof Material"] = df["Roof Material"].astype("category")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -469,4 +486,6 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_town_code_col(df)
     df = clean_cc_residential_prop_chars_type_of_residence_col(df)
     df = clean_cc_residential_prop_chars_apartments_col(df)
+    df = clean_cc_residential_prop_chars_wall_material_col(df)
+    df = clean_cc_residential_prop_chars_roof_material_col(df)
     return df
