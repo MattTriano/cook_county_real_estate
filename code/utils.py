@@ -502,6 +502,20 @@ def clean_cc_residential_prop_chars_basement_col(
     return df
 
 
+def clean_cc_residential_prop_chars_basement_finish_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    basement_finish_map = {
+        1: "Formal rec room",
+        2: "Apartment",
+        3: "Unfinished",
+    }
+    if "Apartment" not in df["Basement Finish"].unique():
+        df["Basement Finish"] = df["Basement Finish"].map(basement_finish_map)
+    df["Basement Finish"] = df["Basement Finish"].astype("category")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -518,4 +532,6 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_roof_material_col(df)
     df = clean_cc_residential_prop_chars_rooms_col(df)
     df = clean_cc_residential_prop_chars_bedrooms_col(df)
+    df = clean_cc_residential_prop_chars_basement_col(df)
+    df = clean_cc_residential_prop_chars_basement_finish_col(df)
     return df
