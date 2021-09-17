@@ -561,6 +561,16 @@ def clean_cc_residential_prop_chars_fireplaces_col(
     return df
 
 
+def clean_cc_residential_prop_chars_attic_type_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    attic_type_map = {1: "Full", 2: "Partial", 3: "None"}
+    if "None" not in df["Attic Type"].unique():
+        df["Attic Type"] = df["Attic Type"].map(attic_type_map)
+    df["Attic Type"] = df["Attic Type"].astype("category")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -583,4 +593,5 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_other_heating_col(df)
     df = clean_cc_residential_prop_chars_central_air_col(df)
     df = clean_cc_residential_prop_chars_fireplaces_col(df)
+    df = clean_cc_residential_prop_chars_attic_type_col(df)
     return df
