@@ -554,6 +554,13 @@ def clean_cc_residential_prop_chars_central_air_col(
     return df
 
 
+def clean_cc_residential_prop_chars_fireplaces_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    df["Fireplaces"] = df["Fireplaces"].astype("Int8")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -575,4 +582,5 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_central_heating_col(df)
     df = clean_cc_residential_prop_chars_other_heating_col(df)
     df = clean_cc_residential_prop_chars_central_air_col(df)
+    df = clean_cc_residential_prop_chars_fireplaces_col(df)
     return df
