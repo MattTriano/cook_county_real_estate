@@ -603,6 +603,16 @@ def clean_cc_residential_prop_chars_design_plan_col(
     return df
 
 
+def clean_cc_residential_prop_chars_cathedral_ceiling_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    attic_finish_map = {0: "Unknown", 1: "Yes", 2: "No"}
+    if "Yes" not in df["Cathedral Ceiling"].unique():
+        df["Cathedral Ceiling"] = df["Cathedral Ceiling"].map(attic_finish_map)
+    df["Cathedral Ceiling"] = df["Cathedral Ceiling"].astype("category")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -629,4 +639,5 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_attic_finish_col(df)
     df = clean_cc_residential_prop_chars_half_baths_col(df)
     df = clean_cc_residential_prop_chars_design_plan_col(df)
+    df = clean_cc_residential_prop_chars_cathedral_ceiling_col(df)
     return df
