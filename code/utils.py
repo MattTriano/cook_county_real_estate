@@ -337,31 +337,6 @@ def dtypeset_simple_categorical_cols(
     return df
 
 
-def clean_cc_residential_prop_chars_renovation_col(
-    df: pd.DataFrame,
-) -> pd.DataFrame:
-    if "yes" not in df["Renovation"].unique():
-        renovation_map = {1: "yes", 2: "no"}
-        df["Renovation"] = df["Renovation"].map(renovation_map)
-    df["Renovation"] = df["Renovation"].astype("category")
-    return df
-
-
-def clean_cc_residential_prop_chars_condo_class_factor_col(
-    df: pd.DataFrame,
-) -> pd.DataFrame:
-    if "residential_condominium" not in df["Condo Class Factor"].unique():
-        condo_class_factor_map = {
-            200: "residential_land",
-            299: "residential_condominium",
-        }
-        df["Condo Class Factor"] = df["Condo Class Factor"].map(
-            condo_class_factor_map
-        )
-    df["Condo Class Factor"] = df["Condo Class Factor"].astype("category")
-    return df
-
-
 def clean_cc_residential_prop_chars_property_class_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -632,6 +607,47 @@ def clean_cc_residential_prop_chars_construction_quality_col(
     return df
 
 
+def clean_cc_residential_prop_chars_renovation_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    if "yes" not in df["Renovation"].unique():
+        renovation_map = {1: "yes", 2: "no"}
+        df["Renovation"] = df["Renovation"].map(renovation_map)
+    df["Renovation"] = df["Renovation"].astype("category")
+    return df
+
+
+def clean_cc_residential_prop_chars_site_desireability_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    site_desireability_map = {
+        1: "Beneficial to Value",
+        2: "Not relevant to Value",
+        3: "Detracts from Value",
+    }
+    if "Not relevant to Value" not in df["Site Desireability"].unique():
+        df["Site Desireability"] = df["Site Desireability"].map(
+            site_desireability_map
+        )
+    df["Site Desireability"] = df["Site Desireability"].astype("category")
+    return df
+
+
+def clean_cc_residential_prop_chars_condo_class_factor_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    if "residential_condominium" not in df["Condo Class Factor"].unique():
+        condo_class_factor_map = {
+            200: "residential_land",
+            299: "residential_condominium",
+        }
+        df["Condo Class Factor"] = df["Condo Class Factor"].map(
+            condo_class_factor_map
+        )
+    df["Condo Class Factor"] = df["Condo Class Factor"].astype("category")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -660,4 +676,6 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_design_plan_col(df)
     df = clean_cc_residential_prop_chars_cathedral_ceiling_col(df)
     df = clean_cc_residential_prop_chars_construction_quality_col(df)
+    df = clean_cc_residential_prop_chars_renovation_col(df)
+    df = clean_cc_residential_prop_chars_site_desireability_col(df)
     return df
