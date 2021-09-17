@@ -531,7 +531,7 @@ def clean_cc_residential_prop_chars_central_heating_col(
     return df
 
 
-def clean_cc_residential_prop_chars_central_heating_col(
+def clean_cc_residential_prop_chars_other_heating_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
     other_heating_map = {
@@ -544,6 +544,13 @@ def clean_cc_residential_prop_chars_central_heating_col(
     if "none" not in df["Other Heating"].unique():
         df["Other Heating"] = df["Other Heating"].map(other_heating_map)
     df["Other Heating"] = df["Other Heating"].astype("category")
+    return df
+
+
+def clean_cc_residential_prop_chars_central_air_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    df["Central Air"] = df["Central Air"].astype("boolean")
     return df
 
 
@@ -566,5 +573,6 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_basement_col(df)
     df = clean_cc_residential_prop_chars_basement_finish_col(df)
     df = clean_cc_residential_prop_chars_central_heating_col(df)
-    df = clean_cc_residential_prop_chars_central_heating_col(df)
+    df = clean_cc_residential_prop_chars_other_heating_col(df)
+    df = clean_cc_residential_prop_chars_central_air_col(df)
     return df
