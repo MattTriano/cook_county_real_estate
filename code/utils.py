@@ -586,6 +586,23 @@ def clean_cc_residential_prop_chars_attic_finish_col(
     return df
 
 
+def clean_cc_residential_prop_chars_half_baths_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    df["Half Baths"] = df["Half Baths"].astype("Int8")
+    return df
+
+
+def clean_cc_residential_prop_chars_design_plan_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    design_plan_map = {0: "Unknown", 1: "Architect", 2: "Stock Plan"}
+    if "Stock Plan" not in df["Design Plan"].unique():
+        df["Design Plan"] = df["Design Plan"].map(design_plan_map)
+    df["Design Plan"] = df["Design Plan"].astype("category")
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -610,4 +627,6 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_fireplaces_col(df)
     df = clean_cc_residential_prop_chars_attic_type_col(df)
     df = clean_cc_residential_prop_chars_attic_finish_col(df)
+    df = clean_cc_residential_prop_chars_half_baths_col(df)
+    df = clean_cc_residential_prop_chars_design_plan_col(df)
     return df
