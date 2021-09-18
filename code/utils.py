@@ -817,6 +817,13 @@ def clean_cc_residential_prop_chars_date_of_most_recent_sale_col(
     return df
 
 
+def clean_cc_residential_prop_chars_census_tract_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    df["Census Tract"] = df["Census Tract"].astype("string")
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
