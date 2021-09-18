@@ -773,6 +773,26 @@ def clean_cc_residential_prop_chars_condo_class_factor_col(
     return df
 
 
+def clean_cc_residential_prop_chars_multi_code_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    number_of_buildings_map = {
+        2: "One building",
+        3: "Two buildings",
+        4: "Three buildings",
+        5: "Four buildings",
+        6: "Five buildings",
+        7: "Six buildings",
+        8: "Bad Value Entered",
+    }
+    bad_multi_code_value_mask = df["Multi Code"] >= 8
+    df.loc[bad_multi_code_value_mask, "Multi Code"] = 9
+    if "One building" not in df["Multi Code"].unique():
+        df["Multi Code"] = df["Multi Code"].map(number_of_buildings_map)
+    df["Multi Code"] = df["Multi Code"].astype("category")
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -821,4 +841,5 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_garage_area_col(df, "1")
     df = clean_cc_residential_prop_chars_garage_area_col(df, "2")
     df = clean_cc_residential_prop_chars_repair_condition_col(df)
+    df = clean_cc_residential_prop_chars_multi_code_col(df)
     return df
