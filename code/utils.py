@@ -767,21 +767,6 @@ def clean_cc_residential_prop_chars_repair_condition_col(
     return df
 
 
-def clean_cc_residential_prop_chars_condo_class_factor_col(
-    df: pd.DataFrame,
-) -> pd.DataFrame:
-    if "residential_condominium" not in df["Condo Class Factor"].unique():
-        condo_class_factor_map = {
-            200: "residential_land",
-            299: "residential_condominium",
-        }
-        df["Condo Class Factor"] = df["Condo Class Factor"].map(
-            condo_class_factor_map
-        )
-    df["Condo Class Factor"] = df["Condo Class Factor"].astype("category")
-    return df
-
-
 def clean_cc_residential_prop_chars_multi_code_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -890,6 +875,44 @@ def clean_cc_residential_prop_chars_use_col(
     return df
 
 
+def clean_cc_residential_prop_chars_condo_class_factor_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Factor variable for NCHARS modeling group. Divides properties into two:
+    Properties with class 200, 201, and 241 are given condo class factor as
+    200. Properties with class 299 are given condo class factor as 299"""
+    condo_class_factor_map = {
+        200: "residential_land",
+        299: "residential_condominium",
+    }
+    if "residential_condominium" not in df["Condo Class Factor"].unique():
+        df["Condo Class Factor"] = df["Condo Class Factor"].map(
+            condo_class_factor_map
+        )
+    df["Condo Class Factor"] = df["Condo Class Factor"].astype("category")
+    return df
+
+
+def clean_cc_residential_prop_chars_multi_family_indicator_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Factor variable for MF modeling group. Properties with class 211 are
+    given multi-family indicator as 211. Properties with class 212 are given
+    multi-family indicator as 212."""
+    multi_family_map = {
+        211: "Yes",
+        212: "Yes",
+    }
+    if "Yes" not in df["Multi-Family Indicator"].unique():
+        df["Multi-Family Indicator"] = df["Multi-Family Indicator"].map(
+            multi_family_map
+        )
+    df["Multi-Family Indicator"] = df["Multi-Family Indicator"].astype(
+        "category"
+    )
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -947,6 +970,8 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_modeling_group_col(df)
     df = clean_cc_residential_prop_chars_age_col(df)
     df = clean_cc_residential_prop_chars_number_of_units_col(df)
+    df = clean_cc_residential_prop_chars_condo_class_factor_col(df)
+    df = clean_cc_residential_prop_chars_multi_family_indicator_col(df)
     return df
 
 
