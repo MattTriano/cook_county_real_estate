@@ -824,6 +824,15 @@ def clean_cc_residential_prop_chars_census_tract_col(
     return df
 
 
+def clean_cc_residential_prop_chars_multi_property_indicator_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    df["Multi Property Indicator"] = df["Multi Property Indicator"].astype(
+        "boolean"
+    )
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -875,6 +884,8 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_multi_code_col(df)
     df = clean_cc_residential_prop_chars_number_of_commercial_units_col(df)
     df = clean_cc_residential_prop_chars_date_of_most_recent_sale_col(df)
+    df = clean_cc_residential_prop_chars_census_tract_col(df)
+    df = clean_cc_residential_prop_chars_multi_property_indicator_col(df)
     return df
 
 
