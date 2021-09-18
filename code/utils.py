@@ -571,6 +571,8 @@ def clean_cc_residential_prop_chars_half_baths_col(
 def clean_cc_residential_prop_chars_full_baths_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
+    """Number of full bathrooms, defined as having a bath or shower. If this
+    value is missing, the default value is set to 1."""
     df["Full Baths"] = df["Full Baths"].astype("Int8")
     return df
 
@@ -854,6 +856,20 @@ def clean_cc_residential_prop_chars_multi_property_indicator_col(
     return df
 
 
+def clean_cc_residential_prop_chars_age_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Age of the property. If missing, this defaults to 10. This field is a
+    combination of original age and effective age where original age refers to
+    the oldest component of the building and effective age is a relative
+    judgement due to renovations or other improvements. For instance, if a
+    property is completely demolished and built up again, the age resets to 1.
+    But if portions of the original structure are kept, it may be more
+    complicated to determine the age."""
+    df["Age"] = df["Age"].astype("Int16")
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -888,6 +904,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_attic_type_col(df)
     df = clean_cc_residential_prop_chars_attic_finish_col(df)
     df = clean_cc_residential_prop_chars_half_baths_col(df)
+    df = clean_cc_residential_prop_chars_full_baths_col(df)
     df = clean_cc_residential_prop_chars_design_plan_col(df)
     df = clean_cc_residential_prop_chars_cathedral_ceiling_col(df)
     df = clean_cc_residential_prop_chars_construction_quality_col(df)
@@ -908,7 +925,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_census_tract_col(df)
     df = clean_cc_residential_prop_chars_multi_property_indicator_col(df)
     df = clean_cc_residential_prop_chars_modeling_group_col(df)
-    df = clean_cc_residential_prop_chars_full_baths_col(df)
+    df = clean_cc_residential_prop_chars_age_col(df)
     return df
 
 
