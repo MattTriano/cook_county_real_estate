@@ -913,6 +913,13 @@ def clean_cc_residential_prop_chars_multi_family_indicator_col(
     return df
 
 
+def clean_cc_residential_prop_chars_large_lot_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    df["Large Lot"] = df["Large Lot"].astype("boolean")
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -972,6 +979,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_number_of_units_col(df)
     df = clean_cc_residential_prop_chars_condo_class_factor_col(df)
     df = clean_cc_residential_prop_chars_multi_family_indicator_col(df)
+    df = clean_cc_residential_prop_chars_large_lot_col(df)
     return df
 
 
