@@ -824,6 +824,20 @@ def clean_cc_residential_prop_chars_census_tract_col(
     return df
 
 
+def clean_cc_residential_prop_chars_modeling_group_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Modeling group, as defined by the property class. Properties with
+    class 200, 201, 241, 299 is defined as "NCHARS", short for "no
+    characteristics", which are condos and vacant land classes. Properties
+    with class 202, 203, 204, 205, 206, 207, 208, 209, 210, 235, 278, and 295
+    are "SF", short for "single-family." Properties with class 211 and 212 are
+    "MF", short for ""multi-family."
+    """
+    df["Modeling Group"] = df["Modeling Group"].astype("category")
+    return df
+
+
 def clean_cc_residential_prop_chars_multi_property_indicator_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -886,6 +900,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_date_of_most_recent_sale_col(df)
     df = clean_cc_residential_prop_chars_census_tract_col(df)
     df = clean_cc_residential_prop_chars_multi_property_indicator_col(df)
+    df = clean_cc_residential_prop_chars_modeling_group_col(df)
     return df
 
 
