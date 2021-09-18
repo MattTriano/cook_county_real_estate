@@ -633,6 +633,34 @@ def clean_cc_residential_prop_chars_site_desireability_col(
     return df
 
 
+def get_garage_size_map() -> Dict:
+    garage_size_map = {
+        0: "Car Port or Driveway Only",
+        1: "1 car",
+        2: "1.5 car",
+        3: "2 car",
+        4: "2.5 cars",
+        5: "3 cars",
+        6: "3.5 cars",
+        7: "None",
+        8: "4 cars",
+        9: "Unknown",
+    }
+    return garage_size_map
+
+
+def clean_cc_residential_prop_chars_garage_1_size_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    garage_size_map = get_garage_size_map()
+    bad_garage_size_value_mask = df["Garage 1 Size"] >= 9
+    df.loc[bad_garage_size_value_mask, "Garage 1 Size"] = 9
+    if "1 car" not in df["Garage 1 Size"].unique():
+        df["Garage 1 Size"] = df["Garage 1 Size"].map(garage_size_map)
+    df["Garage 1 Size"] = df["Garage 1 Size"].astype("category")
+    return df
+
+
 def clean_cc_residential_prop_chars_condo_class_factor_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
