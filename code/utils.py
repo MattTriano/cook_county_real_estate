@@ -649,15 +649,44 @@ def get_garage_size_map() -> Dict:
     return garage_size_map
 
 
-def clean_cc_residential_prop_chars_garage_1_size_col(
-    df: pd.DataFrame,
+def clean_cc_residential_prop_chars_garage_size_col(
+    df: pd.DataFrame, garage_num: str = "1"
 ) -> pd.DataFrame:
     garage_size_map = get_garage_size_map()
-    bad_garage_size_value_mask = df["Garage 1 Size"] >= 9
-    df.loc[bad_garage_size_value_mask, "Garage 1 Size"] = 9
-    if "1 car" not in df["Garage 1 Size"].unique():
-        df["Garage 1 Size"] = df["Garage 1 Size"].map(garage_size_map)
-    df["Garage 1 Size"] = df["Garage 1 Size"].astype("category")
+    bad_garage_size_value_mask = df[f"Garage {garage_num} Size"] >= 9
+    df.loc[bad_garage_size_value_mask, f"Garage {garage_num} Size"] = 9
+    if "1 car" not in df[f"Garage {garage_num} Size"].unique():
+        df[f"Garage {garage_num} Size"] = df[f"Garage {garage_num} Size"].map(
+            garage_size_map
+        )
+    df[f"Garage {garage_num} Size"] = df[f"Garage {garage_num} Size"].astype(
+        "category"
+    )
+    return df
+
+
+def get_garage_material_map() -> Dict:
+    garage_material_map = {
+        0: "Car Port or Driveway Only",
+        1: "Frame",
+        2: "Masonry",
+        3: "Frame/Masonry",
+        4: "Stucco",
+    }
+    return garage_material_map
+
+
+def clean_cc_residential_prop_chars_garage_material_col(
+    df: pd.DataFrame, garage_num: str = "1"
+) -> pd.DataFrame:
+    garage_material_map = get_garage_material_map()
+    if "Frame" not in df[f"Garage {garage_num} Material"].unique():
+        df[f"Garage {garage_num} Material"] = df[
+            f"Garage {garage_num} Material"
+        ].map(garage_material_map)
+    df[f"Garage {garage_num} Material"] = df[
+        f"Garage {garage_num} Material"
+    ].astype("category")
     return df
 
 
@@ -706,4 +735,8 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_construction_quality_col(df)
     df = clean_cc_residential_prop_chars_renovation_col(df)
     df = clean_cc_residential_prop_chars_site_desireability_col(df)
+    df = clean_cc_residential_prop_chars_garage_size_col(df, "1")
+    df = clean_cc_residential_prop_chars_garage_size_col(df, "2")
+    df = clean_cc_residential_prop_chars_garage_material_col(df, "1")
+    df = clean_cc_residential_prop_chars_garage_material_col(df, "2")
     return df
