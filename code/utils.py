@@ -793,6 +793,15 @@ def clean_cc_residential_prop_chars_multi_code_col(
     return df
 
 
+def clean_cc_residential_prop_chars_number_of_commercial_units_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    df["Number of Commercial Units"] = df["Number of Commercial Units"].astype(
+        "Int8"
+    )
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -842,4 +851,5 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_garage_area_col(df, "2")
     df = clean_cc_residential_prop_chars_repair_condition_col(df)
     df = clean_cc_residential_prop_chars_multi_code_col(df)
+    df = clean_cc_residential_prop_chars_number_of_commercial_units_col(df)
     return df
