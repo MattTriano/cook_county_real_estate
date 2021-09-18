@@ -870,6 +870,14 @@ def clean_cc_residential_prop_chars_age_col(
     return df
 
 
+def clean_cc_residential_prop_chars_number_of_units_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """For condos, the number of units in a building"""
+    df["Number of Units"] = df["Number of Units"].astype("Int16")
+    return df
+
+
 def clean_cc_residential_prop_chars_use_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -938,6 +946,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_multi_property_indicator_col(df)
     df = clean_cc_residential_prop_chars_modeling_group_col(df)
     df = clean_cc_residential_prop_chars_age_col(df)
+    df = clean_cc_residential_prop_chars_number_of_units_col(df)
     return df
 
 
