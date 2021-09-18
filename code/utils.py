@@ -568,6 +568,13 @@ def clean_cc_residential_prop_chars_half_baths_col(
     return df
 
 
+def clean_cc_residential_prop_chars_full_baths_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    df["Full Baths"] = df["Full Baths"].astype("Int8")
+    return df
+
+
 def clean_cc_residential_prop_chars_design_plan_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -901,6 +908,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_census_tract_col(df)
     df = clean_cc_residential_prop_chars_multi_property_indicator_col(df)
     df = clean_cc_residential_prop_chars_modeling_group_col(df)
+    df = clean_cc_residential_prop_chars_full_baths_col(df)
     return df
 
 
