@@ -869,3 +869,27 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_number_of_commercial_units_col(df)
     df = clean_cc_residential_prop_chars_date_of_most_recent_sale_col(df)
     return df
+
+
+def get_2010_cook_county_census_tract_gdf(
+    raw_file_path: Union[str, None] = None, force_repull: bool = False
+) -> gpd.GeoDataFrame:
+    gdf = get_gdf_of_data_portal_data(
+        file_name="census_tracts__cook_county_2010.parquet.gzip",
+        url="https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/TRACT/2010/tl_2020_17031_tract10.zip",
+        raw_file_path=raw_file_path,
+        force_repull=force_repull,
+    )
+    return gdf
+
+
+def get_2020_cook_county_census_tract_gdf(
+    raw_file_path: Union[str, None] = None, force_repull: bool = False
+) -> gpd.GeoDataFrame:
+    gdf = get_gdf_of_data_portal_data(
+        file_name="census_tracts__cook_county_2020.parquet.gzip",
+        url="https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/TRACT/2020/tl_2020_17031_tract20.zip",
+        raw_file_path=raw_file_path,
+        force_repull=force_repull,
+    )
+    return gdf
