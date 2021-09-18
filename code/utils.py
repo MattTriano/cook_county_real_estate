@@ -690,6 +690,48 @@ def clean_cc_residential_prop_chars_garage_material_col(
     return df
 
 
+def get_garage_attachment_map() -> Dict:
+    garage_attached_map = {0: "Car Port or Driveway Only", 1: "Yes", 2: "No"}
+    return garage_attached_map
+
+
+def clean_cc_residential_prop_chars_garage_attachment_col(
+    df: pd.DataFrame, garage_num: str = "1"
+) -> pd.DataFrame:
+    garage_attached_map = get_garage_attachment_map()
+    if "Frame" not in df[f"Garage {garage_num} Attachment"].unique():
+        df[f"Garage {garage_num} Attachment"] = df[
+            f"Garage {garage_num} Attachment"
+        ].map(garage_attached_map)
+    df[f"Garage {garage_num} Attachment"] = df[
+        f"Garage {garage_num} Attachment"
+    ].astype("category")
+    return df
+
+
+def get_garage_area_map() -> Dict:
+    garage_area_map = {
+        0: "Car Port or Driveway Only",
+        1: "Yes, garage area included in building area",
+        2: "No, garage area not included in building area",
+    }
+    return garage_area_map
+
+
+def clean_cc_residential_prop_chars_garage_area_col(
+    df: pd.DataFrame, garage_num: str = "1"
+) -> pd.DataFrame:
+    garage_area_map = get_garage_area_map()
+    if "Frame" not in df[f"Garage {garage_num} Area"].unique():
+        df[f"Garage {garage_num} Area"] = df[f"Garage {garage_num} Area"].map(
+            garage_area_map
+        )
+    df[f"Garage {garage_num} Area"] = df[f"Garage {garage_num} Area"].astype(
+        "category"
+    )
+    return df
+
+
 def clean_cc_residential_prop_chars_condo_class_factor_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -739,4 +781,8 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_garage_size_col(df, "2")
     df = clean_cc_residential_prop_chars_garage_material_col(df, "1")
     df = clean_cc_residential_prop_chars_garage_material_col(df, "2")
+    df = clean_cc_residential_prop_chars_garage_attachment_col(df, "1")
+    df = clean_cc_residential_prop_chars_garage_attachment_col(df, "2")
+    df = clean_cc_residential_prop_chars_garage_area_col(df, "1")
+    df = clean_cc_residential_prop_chars_garage_area_col(df, "2")
     return df
