@@ -870,6 +870,18 @@ def clean_cc_residential_prop_chars_age_col(
     return df
 
 
+def clean_cc_residential_prop_chars_use_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Use of property - 1 = single family, 2 = multi-family. If absent,
+    default value is 1."""
+    use_of_property_map = {1: "Single Family", 2: "Multi Family"}
+    if "Single Family" not in df["Use"].unique():
+        df["Use"] = df["Use"].map(use_of_property_map)
+    df["Use"] = df["Use"].astype("category")
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
