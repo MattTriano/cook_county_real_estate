@@ -732,6 +732,16 @@ def clean_cc_residential_prop_chars_garage_area_col(
     return df
 
 
+def clean_cc_residential_prop_chars_porch_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    porch_map = {1: "Frame", 2: "Masonry", 3: "None"}
+    if "None" not in df["Porch"].unique():
+        df["Porch"] = df["Porch"].map(porch_map)
+    df["Porch"] = df["Porch"].astype("category")
+    return df
+
+
 def clean_cc_residential_prop_chars_condo_class_factor_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
