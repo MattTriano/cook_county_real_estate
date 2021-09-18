@@ -802,6 +802,21 @@ def clean_cc_residential_prop_chars_number_of_commercial_units_col(
     return df
 
 
+def clean_cc_residential_prop_chars_date_of_most_recent_sale_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """The format for the dates appears to be "%m/%d/%Y", but this
+    necessittated, setting `errors="coerce"`, which indicates some incorrectly
+    formatted dates, but I couldn't find them via inspection. The time to run
+    this step without a format was negligable, so I'll leave this with the
+    robust default mode.
+    """
+    df["Date of Most Recent Sale"] = pd.to_datetime(
+        df["Date of Most Recent Sale"]
+    )
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -852,4 +867,5 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_repair_condition_col(df)
     df = clean_cc_residential_prop_chars_multi_code_col(df)
     df = clean_cc_residential_prop_chars_number_of_commercial_units_col(df)
+    df = clean_cc_residential_prop_chars_date_of_most_recent_sale_col(df)
     return df
