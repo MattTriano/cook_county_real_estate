@@ -742,6 +742,22 @@ def clean_cc_residential_prop_chars_porch_col(
     return df
 
 
+def clean_cc_residential_prop_chars_repair_condition_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    state_of_repair_map = {
+        1: "Above average",
+        2: "Average",
+        3: "Below average",
+    }
+    if "Average" not in df["Repair Condition"].unique():
+        df["Repair Condition"] = df["Repair Condition"].map(
+            state_of_repair_map
+        )
+    df["Repair Condition"] = df["Repair Condition"].astype("category")
+    return df
+
+
 def clean_cc_residential_prop_chars_condo_class_factor_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -757,6 +773,14 @@ def clean_cc_residential_prop_chars_condo_class_factor_col(
     return df
 
 
+def clean_cc_residential_prop_chars_drop_cols(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    drop_cols = ["Other Improvements"]
+    df = df.drop(columns=drop_cols)
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -764,6 +788,7 @@ def clean_cc_residential_property_characteristics_data(
         raw_file_path=raw_file_path, force_repull=force_repull
     )
     df = cc_res_prop_char_df.convert_dtypes()
+    df = clean_cc_residential_prop_chars_drop_cols(df)
     df = clean_cc_residential_prop_chars_property_class_col(df)
     df = clean_cc_residential_prop_chars_neighborhood_code_col(df)
     df = clean_cc_residential_prop_chars_town_code_col(df)
@@ -795,4 +820,5 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_garage_attachment_col(df, "2")
     df = clean_cc_residential_prop_chars_garage_area_col(df, "1")
     df = clean_cc_residential_prop_chars_garage_area_col(df, "2")
+    df = clean_cc_residential_prop_chars_repair_condition_col(df)
     return df
