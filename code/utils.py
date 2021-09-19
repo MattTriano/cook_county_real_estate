@@ -3,6 +3,7 @@ from typing import Dict, List, Union, Optional
 
 import missingno as msno
 import pandas as pd
+from pandas.api.types import CategoricalDtype
 import geopandas as gpd
 
 
@@ -945,6 +946,18 @@ def clean_cc_residential_prop_chars_deed_type_col(
     return df
 
 
+def clean_cc_residential_prop_chars_condo_strata_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """For condominiums, shows the decile of mean unit market value a
+    condominimum building is."""
+    decile_cat_type = CategoricalDtype(
+        categories=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], ordered=True
+    )
+    df["Condo Strata"] = df["Condo Strata"].astype(decile_cat_type)
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -1007,6 +1020,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_large_lot_col(df)
     df = clean_cc_residential_prop_chars_cdu_col(df)
     df = clean_cc_residential_prop_chars_deed_type_col(df)
+    df = clean_cc_residential_prop_chars_condo_strata_col(df)
     return df
 
 
