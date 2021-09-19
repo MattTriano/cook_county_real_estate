@@ -916,7 +916,22 @@ def clean_cc_residential_prop_chars_multi_family_indicator_col(
 def clean_cc_residential_prop_chars_large_lot_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
+    """Large lot factor variable, where 1 acre of land (land square feet >
+    43559) is defined as a large lot. 1 = large lot, 0 = not a large lot."""
     df["Large Lot"] = df["Large Lot"].astype("boolean")
+    return df
+
+
+def clean_cc_residential_prop_chars_cdu_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """About 20 different codes attached to the face sheet that denote a
+    number of seemingly unrelated characteristics associated with a PIN,
+    ranging from condition to types of subsidies. This field does not match
+    across the SQL server/AS-400 for 2018."""
+    df["Condition, Desirability and Utility"] = df[
+        "Condition, Desirability and Utility"
+    ].astype("category")
     return df
 
 
