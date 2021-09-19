@@ -852,7 +852,7 @@ def clean_cc_residential_prop_chars_age_col(
     property is completely demolished and built up again, the age resets to 1.
     But if portions of the original structure are kept, it may be more
     complicated to determine the age."""
-    df["Age"] = df["Age"].astype("Int16")
+    df["Age"] = df["Age"].astype("Int32")
     return df
 
 
@@ -961,7 +961,14 @@ def clean_cc_residential_prop_chars_condo_strata_col(
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
-    drop_cols = ["Other Improvements"]
+    drop_cols = [
+        "Other Improvements",
+        "Age Squared",
+        "Age Decade",
+        "Age Decade Squared",
+        "Lot Size Squared",
+        "Improvement Size Squared",
+    ]
     df = df.drop(columns=drop_cols)
     return df
 
@@ -972,7 +979,7 @@ def clean_cc_residential_property_characteristics_data(
     df = get_raw_cc_residential_property_characteristics_data(
         raw_file_path=raw_file_path, force_repull=force_repull
     )
-    df = cc_res_prop_char_df.convert_dtypes()
+    df = df.convert_dtypes()
     df = clean_cc_residential_prop_chars_drop_cols(df)
     df = clean_cc_residential_prop_chars_property_class_col(df)
     df = clean_cc_residential_prop_chars_neighborhood_code_col(df)
