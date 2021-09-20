@@ -984,8 +984,19 @@ def clean_cc_residential_prop_chars_pure_market_sale_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
     """Indicator for pure market sale."""
-    """Indicates presence of a garage of any size."""
     df["Pure Market Sale"] = df["Pure Market Sale"].astype("boolean")
+    return df
+
+
+def clean_cc_residential_prop_chars_town_and_neighborhood_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    df["Town and Neighborhood"] = df["Town Code"].astype("string") + df[
+        "Neighborhood Code"
+    ].astype("string")
+    df["Town and Neighborhood"] = df["Town and Neighborhood"].astype(
+        "category"
+    )
     return df
 
 
@@ -1000,6 +1011,10 @@ def clean_cc_residential_prop_chars_drop_cols(
         "Lot Size Squared",
         "Improvement Size Squared",
         "Pure Market Filter",
+        "Neigborhood Code (mapping)",
+        "Square root of lot size",
+        "Square root of age",
+        "Square root of improvement size",
     ]
     df = df.drop(columns=drop_cols)
     return df
@@ -1063,6 +1078,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_garage_indicator_col(df)
     df = clean_cc_residential_prop_chars_residential_share_of_building_col(df)
     df = clean_cc_residential_prop_chars_pure_market_sale_col(df)
+    df = clean_cc_residential_prop_chars_town_and_neighborhood_col(df)
     return df
 
 
