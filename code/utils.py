@@ -969,12 +969,23 @@ def clean_cc_residential_prop_chars_garage_indicator_col(
 def clean_cc_residential_prop_chars_residential_share_of_building_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
+    """A sum of "percent of ownership" that only includes residential units
+    within a condo building."""
     rounding_error_mask = (df["Residential share of building"] > 1) & (
         df["Residential share of building"] < 1.01
     )
     bigger_error_mask = df["Residential share of building"] >= 1.01
     df.loc[rounding_error_mask, "Residential share of building"] = 1
     df.loc[bigger_error_mask, "Residential share of building"] = 1.01
+    return df
+
+
+def clean_cc_residential_prop_chars_pure_market_sale_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Indicator for pure market sale."""
+    """Indicates presence of a garage of any size."""
+    df["Pure Market Sale"] = df["Pure Market Sale"].astype("boolean")
     return df
 
 
@@ -988,6 +999,7 @@ def clean_cc_residential_prop_chars_drop_cols(
         "Age Decade Squared",
         "Lot Size Squared",
         "Improvement Size Squared",
+        "Pure Market Filter",
     ]
     df = df.drop(columns=drop_cols)
     return df
@@ -1050,6 +1062,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_condo_strata_col(df)
     df = clean_cc_residential_prop_chars_garage_indicator_col(df)
     df = clean_cc_residential_prop_chars_residential_share_of_building_col(df)
+    df = clean_cc_residential_prop_chars_pure_market_sale_col(df)
     return df
 
 
