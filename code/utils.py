@@ -966,6 +966,18 @@ def clean_cc_residential_prop_chars_garage_indicator_col(
     return df
 
 
+def clean_cc_residential_prop_chars_residential_share_of_building_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    rounding_error_mask = (df["Residential share of building"] > 1) & (
+        df["Residential share of building"] < 1.01
+    )
+    bigger_error_mask = df["Residential share of building"] >= 1.01
+    df.loc[rounding_error_mask, "Residential share of building"] = 1
+    df.loc[bigger_error_mask, "Residential share of building"] = 1.01
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -1037,6 +1049,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_deed_type_col(df)
     df = clean_cc_residential_prop_chars_condo_strata_col(df)
     df = clean_cc_residential_prop_chars_garage_indicator_col(df)
+    df = clean_cc_residential_prop_chars_residential_share_of_building_col(df)
     return df
 
 
