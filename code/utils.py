@@ -816,6 +816,7 @@ def clean_cc_residential_prop_chars_census_tract_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
     df["Census Tract"] = df["Census Tract"].astype("string")
+    df["Census Tract"] = df["Census Tract"].str.zfill(6)
     return df
 
 
@@ -1112,7 +1113,7 @@ def get_cook_county_boundary_gdf(
     # Not sure how durable the url
     # 'https://hub-cookcountyil.opendata.arcgis.com/datasets/ea127f9e96b74677892722069c984198_1/explore'
     # is, but I can deal with that if/when I have to.
-    gdf = utils.get_gdf_of_data_portal_data(
+    gdf = get_gdf_of_data_portal_data(
         file_name="cook_county_boundary_from_opendata.parquet.gzip",
         url="https://opendata.arcgis.com/api/v3/datasets/ea127f9e96b74677892722069c984198_1/downloads/data?format=shp&spatialRefId=3435",
         raw_file_path=raw_file_path,
