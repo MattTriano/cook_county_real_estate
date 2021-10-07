@@ -1123,7 +1123,7 @@ def get_cook_county_boundary_gdf(
 
 
 def split_cc_census_tracts_by_neighborhood() -> gpd.GeoDataFrame:
-    cc_neighborhood_gdf = utils.get_clean_cc_residential_neighborhood_geodata()
+    cc_neighborhood_gdf = get_clean_cc_residential_neighborhood_geodata()
     cc_neighborhood_gdf = cc_neighborhood_gdf.drop_duplicates(
         ignore_index=True
     )
@@ -1134,7 +1134,7 @@ def split_cc_census_tracts_by_neighborhood() -> gpd.GeoDataFrame:
         ["nbhd", "town_nbhd", "township_n", "geometry"]
     ].copy()
 
-    census_tract10_gdf = utils.get_2010_cook_county_census_tract_gdf()
+    census_tract10_gdf = get_2010_cook_county_census_tract_gdf()
     census_tract10_gdf = census_tract10_gdf.to_crs(cc_neighborhood_gdf.crs)
     census_tract10_gdf = census_tract10_gdf.loc[
         (
@@ -1207,3 +1207,32 @@ def split_cc_census_tracts_by_neighborhood() -> gpd.GeoDataFrame:
     new_gdf["INTPTLAT10"] = new_gdf["INTPTLAT10"].astype(float)
     new_gdf["INTPTLON10"] = new_gdf["INTPTLON10"].astype(float)
     return new_gdf
+
+
+def get_cc_census_tracts_split_by_neighborhood_geodata(
+    clean_file_path: Union[str, bool] = None,
+    force_reclean: bool = False,
+    force_repull: bool = False,
+) -> gpd.GeoDataFrame:
+    if clean_file_path is None:
+        file_dir = os.path.join(
+            os.path.expanduser("~"),
+            "projects",
+            "cook_county_real_estate",
+            "data_clean",
+        )
+        clean_file_path = os.path.join(
+            file_dir,
+            "cc_census_tracts_split_by_neighborhood_boundaries.parquet.gzip",
+        )
+    if (
+        os.path.isfile(clean_file_path)
+        and not force_reclean
+        and not force_repull
+    ):
+        gdf = gpd.read_parquet(clean_file_path)
+        return gdf
+    else:
+        gdf = split_cc_census_tracts_by_neighborhood()
+    gdf.to_parquet(clean_file_path, compression="gzip")
+    return gdf
