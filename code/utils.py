@@ -1120,3 +1120,90 @@ def get_cook_county_boundary_gdf(
         force_repull=force_repull,
     )
     return gdf
+
+
+def split_cc_census_tracts_by_neighborhood() -> gpd.GeoDataFrame:
+    cc_neighborhood_gdf = utils.get_clean_cc_residential_neighborhood_geodata()
+    cc_neighborhood_gdf = cc_neighborhood_gdf.drop_duplicates(
+        ignore_index=True
+    )
+    cc_neighborhood_gdf["township_n"] = cc_neighborhood_gdf[
+        "township_n"
+    ].str.upper()
+    cc_nbhd_gdf = cc_neighborhood_gdf[
+        ["nbhd", "town_nbhd", "township_n", "geometry"]
+    ].copy()
+
+    census_tract10_gdf = utils.get_2010_cook_county_census_tract_gdf()
+    census_tract10_gdf = census_tract10_gdf.to_crs(cc_neighborhood_gdf.crs)
+    census_tract10_gdf = census_tract10_gdf.loc[
+        (
+            census_tract10_gdf["AWATER10"]
+            != census_tract10_gdf["AWATER10"].max()
+        )
+    ].copy()
+    census_tract10_gdf = census_tract10_gdf.reset_index(drop=True)
+
+    all_split_tracts = []
+    for tract_i in range(len(census_tract10_gdf)):
+        tract_geom = census_tract10_gdf.loc[tract_i:tract_i].copy()
+        cc_nbhd_gdf_geoms = []
+        intersecting_tracts = cc_nbhd_gdf.sjoin(
+            tract_geom, how="inner", predicate="intersects"
+        ).copy()
+        intersecting_tracts = intersecting_tracts.reset_index(drop=True)
+        for i in range(len(intersecting_tracts)):
+            nbhd_geom = intersecting_tracts.loc[i:i].copy()
+            tract_nbhd = tract_geom.overlay(nbhd_geom, how="intersection")
+            cc_nbhd_gdf_geoms.append(tract_nbhd)
+        cc_nbhd_gdf_geoms_gdf = pd.concat(cc_nbhd_gdf_geoms)
+        all_split_tracts.append(cc_nbhd_gdf_geoms_gdf)
+
+    new_gdf = pd.concat(all_split_tracts)
+    new_gdf = new_gdf.reset_index(drop=True)
+    assert (
+        new_gdf.loc[
+            (new_gdf["TRACTCE10_1"] == new_gdf["TRACTCE10_2"])
+            & (new_gdf["GEOID10_1"] == new_gdf["GEOID10_2"])
+            & (new_gdf["NAME10_1"] == new_gdf["NAME10_2"])
+            & (new_gdf["NAMELSAD10_1"] == new_gdf["NAMELSAD10_2"])
+            & (new_gdf["MTFCC10_1"] == new_gdf["MTFCC10_2"])
+            & (new_gdf["FUNCSTAT10_1"] == new_gdf["FUNCSTAT10_2"])
+            & (new_gdf["ALAND10_1"] == new_gdf["ALAND10_2"])
+            & (new_gdf["INTPTLAT10_1"] == new_gdf["INTPTLAT10_2"])
+            & (new_gdf["INTPTLON10_1"] == new_gdf["INTPTLON10_2"])
+            & (new_gdf["STATEFP10_1"] == new_gdf["STATEFP10_2"])
+            & (new_gdf["COUNTYFP10_1"] == new_gdf["COUNTYFP10_2"])
+        ].shape[0]
+        == new_gdf.shape[0]
+    )
+    drop_cols = [col for col in new_gdf.columns if col.endswith("_2")]
+    new_gdf = new_gdf.drop(columns=drop_cols)
+    new_gdf.columns = [col.replace("_1", "") for col in new_gdf.columns]
+    new_gdf = new_gdf.drop(
+        columns=[
+            "index_right",
+            "ALAND10",
+            "AWATER10",
+            "NAMELSAD10",
+            "FUNCSTAT10",
+            "MTFCC10",
+        ]
+    )
+
+    cat_cols = [
+        "STATEFP10",
+        "COUNTYFP10",
+        "TRACTCE10",
+        "GEOID10",
+        "NAME10",
+        "nbhd",
+        "town_nbhd",
+        "township_n",
+    ]
+    for cat_col in cat_cols:
+        new_gdf[cat_col] = new_gdf[cat_col].astype("category")
+
+    new_gdf["INTPTLAT10"] = new_gdf["INTPTLAT10"].astype(float)
+    new_gdf["INTPTLON10"] = new_gdf["INTPTLON10"].astype(float)
+    return new_gdf
