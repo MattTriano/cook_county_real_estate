@@ -1206,13 +1206,13 @@ def split_cc_census_tracts_by_neighborhood() -> gpd.GeoDataFrame:
 
     new_gdf["INTPTLAT10"] = new_gdf["INTPTLAT10"].astype(float)
     new_gdf["INTPTLON10"] = new_gdf["INTPTLON10"].astype(float)
+    new_gdf["rep_point"] = new_gdf.geometry.representative_point()
     return new_gdf
 
 
 def get_cc_census_tracts_split_by_neighborhood_geodata(
     clean_file_path: Union[str, bool] = None,
-    force_reclean: bool = False,
-    force_repull: bool = False,
+    force_remake: bool = False,
 ) -> gpd.GeoDataFrame:
     if clean_file_path is None:
         file_dir = os.path.join(
@@ -1225,11 +1225,7 @@ def get_cc_census_tracts_split_by_neighborhood_geodata(
             file_dir,
             "cc_census_tracts_split_by_neighborhood_boundaries.parquet.gzip",
         )
-    if (
-        os.path.isfile(clean_file_path)
-        and not force_reclean
-        and not force_repull
-    ):
+    if os.path.isfile(clean_file_path) and not force_remake:
         gdf = gpd.read_parquet(clean_file_path)
         return gdf
     else:
