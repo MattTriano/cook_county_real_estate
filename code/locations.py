@@ -192,6 +192,14 @@ def clean_cc_property_locations_ward_col(
     return df
 
 
+def clean_cc_property_locations_ssa_no_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """City of Chicago Special Service Area name"""
+    df["ssa_no"] = df["ssa_no"].astype("category")
+    return df
+
+
 def clean_cc_property_locations_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -224,4 +232,5 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_township_col(df)
     df = clean_cc_property_locations_puma_col(df)
     df = clean_cc_property_locations_ward_col(df)
+    df = clean_cc_property_locations_ssa_no_col(df)
     return df
