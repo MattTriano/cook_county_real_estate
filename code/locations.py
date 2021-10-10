@@ -159,6 +159,14 @@ def clean_cc_property_locations_senate_dist_col(
     return df
 
 
+def clean_cc_property_locations_township_name_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Township name"""
+    df["township_name"] = df["township_name"].astype("category")
+    return df
+
+
 def clean_cc_property_locations_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -187,4 +195,5 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_fs_flood_factor_col(df)
     df = clean_cc_property_locations_commissioner_dist_col(df)
     df = clean_cc_property_locations_senate_dist_col(df)
+    df = clean_cc_property_locations_township_name_col(df)
     return df
