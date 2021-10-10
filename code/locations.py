@@ -259,6 +259,14 @@ def clean_cc_property_locations_nbhd_col(
     return df
 
 
+def clean_cc_property_locations_tif_agencynum_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Tax Increment Financing (TIF) district."""
+    df["tif_agencynum"] = df["tif_agencynum"].astype("category")
+    return df
+
+
 def clean_cc_property_locations_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -299,4 +307,5 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_school_elem_district_col(df)
     df = clean_cc_property_locations_municipality_col(df)
     df = clean_cc_property_locations_nbhd_col(df)
+    df = clean_cc_property_locations_tif_agencynum_col(df)
     return df
