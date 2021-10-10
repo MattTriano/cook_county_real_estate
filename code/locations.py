@@ -75,3 +75,56 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_withinmr100_col(df)
     df = clean_cc_property_locations_withinmr101300_col(df)
     return df
+
+
+def clean_cc_property_locations_property_city_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """City of the property"""
+    df["property_city"] = df["property_city"].str.replace(
+        " GR VILL$", " GROVE VILLAGE", regex=True
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        " PK$", " PARK", regex=True
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        " HTS$", " HEIGHTS", regex=True
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        " HGT$", " HEIGHTS", regex=True
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        " HLS$", " HILLS", regex=True
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        "WESTERN SPRG", "WESTERN SPRINGS"
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        "OAKBROOK", "OAK BROOK"
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        "BERKLEY", "BERKELEY"
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        "BERKLEY", "BERKELEY"
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        "LAGRANGE", "LA GRANGE"
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        "SUMMIT ARGO", "SUMMIT"
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        "SUMMIT ARGO", "SUMMIT"
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        "^ARGO$", "SUMMIT", regex=True
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        "^ORLAND$", "ORLAND PARK", regex=True
+    )
+    df["property_city"] = df["property_city"].str.replace(
+        "^SCHILLET PARK$", "SCHILLER PARK", regex=True
+    )
+    df["property_city"] = df["property_city"].astype("category")
+    return df
