@@ -242,6 +242,23 @@ def clean_cc_property_locations_school_elem_district_col(
     return df
 
 
+def clean_cc_property_locations_municipality_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Municipality name."""
+    df["municipality"] = df["municipality"].astype("category")
+    return df
+
+
+def clean_cc_property_locations_nbhd_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """3-digit assessor neighborhood, only unique when combined with township
+    number."""
+    df["nbhd"] = df["nbhd"].astype(str).str.zfill(3).astype("category")
+    return df
+
+
 def clean_cc_property_locations_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -280,4 +297,6 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_mailing_state_col(df)
     df = clean_cc_property_locations_school_hs_district_col(df)
     df = clean_cc_property_locations_school_elem_district_col(df)
+    df = clean_cc_property_locations_municipality_col(df)
+    df = clean_cc_property_locations_nbhd_col(df)
     return df
