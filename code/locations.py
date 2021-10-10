@@ -175,6 +175,15 @@ def clean_cc_property_locations_township_col(
     return df
 
 
+def clean_cc_property_locations_puma_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """PUMA (Public Use Microdata Area) code of the PUMA containing the
+    property, 2018 defitition"""
+    df["puma"] = df["puma"].astype("category")
+    return df
+
+
 def clean_cc_property_locations_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -205,4 +214,5 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_senate_dist_col(df)
     df = clean_cc_property_locations_township_name_col(df)
     df = clean_cc_property_locations_township_col(df)
+    df = clean_cc_property_locations_puma_col(df)
     return df
