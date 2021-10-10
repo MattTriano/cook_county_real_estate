@@ -208,6 +208,22 @@ def clean_cc_property_locations_ssa_name_col(
     return df
 
 
+def clean_cc_property_locations_reps_dist_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Illinois state representative district"""
+    df["reps_dist"] = df["reps_dist"].astype("category")
+    return df
+
+
+def clean_cc_property_locations_mailing_state_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Mailing state of property owner"""
+    df["mailing_state"] = df["mailing_state"].astype("category")
+    return df
+
+
 def clean_cc_property_locations_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -242,4 +258,6 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_ward_col(df)
     df = clean_cc_property_locations_ssa_no_col(df)
     df = clean_cc_property_locations_ssa_name_col(df)
+    df = clean_cc_property_locations_reps_dist_col(df)
+    df = clean_cc_property_locations_mailing_state_col(df)
     return df
