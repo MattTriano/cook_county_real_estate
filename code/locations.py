@@ -135,7 +135,7 @@ def clean_cc_property_locations_fs_flood_factor_col(
     (where 1 = minimal and 10 = extreme) based on flooding risk to the
     building footprint. Flood risk is defined as a combination of cumulative
     risk over 30 years and flood depth. Flood depth is calculated at the
-    lowest elevation of the building footprint (large"""
+    lowest elevation of the building footprint (large."""
     flood_factor_risk_map = CategoricalDtype(
         categories=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], ordered=True
     )
@@ -146,7 +146,7 @@ def clean_cc_property_locations_fs_flood_factor_col(
 def clean_cc_property_locations_commissioner_dist_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Cook County Commissioner district"""
+    """Cook County Commissioner district."""
     df["commissioner_dist"] = df["commissioner_dist"].astype("category")
     return df
 
@@ -154,7 +154,7 @@ def clean_cc_property_locations_commissioner_dist_col(
 def clean_cc_property_locations_senate_dist_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Illinois state senate district"""
+    """Illinois state senate district."""
     df["senate_dist"] = df["senate_dist"].astype("category")
     return df
 
@@ -162,7 +162,7 @@ def clean_cc_property_locations_senate_dist_col(
 def clean_cc_property_locations_township_name_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Township name"""
+    """Township name."""
     df["township_name"] = df["township_name"].astype("category")
     return df
 
@@ -170,7 +170,7 @@ def clean_cc_property_locations_township_name_col(
 def clean_cc_property_locations_township_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Township number"""
+    """Township number."""
     df["township"] = df["township"].astype("category")
     return df
 
@@ -179,7 +179,7 @@ def clean_cc_property_locations_puma_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
     """PUMA (Public Use Microdata Area) code of the PUMA containing the
-    property, 2018 defitition"""
+    property, 2018 defitition."""
     df["puma"] = df["puma"].astype("category")
     return df
 
@@ -187,7 +187,7 @@ def clean_cc_property_locations_puma_col(
 def clean_cc_property_locations_ward_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """City of Chicago ward number"""
+    """City of Chicago ward number."""
     df["ward"] = df["ward"].astype("category")
     return df
 
@@ -195,8 +195,16 @@ def clean_cc_property_locations_ward_col(
 def clean_cc_property_locations_ssa_no_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """City of Chicago Special Service Area name"""
+    """City of Chicago Special Service Area number."""
     df["ssa_no"] = df["ssa_no"].astype("category")
+    return df
+
+
+def clean_cc_property_locations_ssa_name_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """City of Chicago Special Service Area name."""
+    df["ssa_name"] = df["ssa_name"].astype("category")
     return df
 
 
@@ -233,4 +241,5 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_puma_col(df)
     df = clean_cc_property_locations_ward_col(df)
     df = clean_cc_property_locations_ssa_no_col(df)
+    df = clean_cc_property_locations_ssa_name_col(df)
     return df
