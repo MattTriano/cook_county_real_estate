@@ -51,32 +51,6 @@ def clean_cc_property_locations_withinmr101300_col(
     return df
 
 
-def clean_cc_property_locations_drop_cols(
-    df: pd.DataFrame,
-) -> pd.DataFrame:
-    drop_cols = [
-        "indicator_has_latlon",
-        "indicator_has_address",
-    ]
-    df = df.drop(columns=drop_cols)
-    return df
-
-
-def clean_cc_property_locations_data(
-    raw_file_path: Union[str, None] = None, force_repull: bool = False
-) -> gpd.GeoDataFrame:
-    df = get_raw_cc_residential_property_characteristics_data(
-        raw_file_path=raw_file_path, force_repull=force_repull
-    )
-    df = df.convert_dtypes()
-    df = clean_cc_property_locations_drop_cols(df)
-    df = clean_cc_property_locations_ohare_noise_col(df)
-    df = clean_cc_property_locations_floodplain_col(df)
-    df = clean_cc_property_locations_withinmr100_col(df)
-    df = clean_cc_property_locations_withinmr101300_col(df)
-    return df
-
-
 def clean_cc_property_locations_property_city_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -127,4 +101,50 @@ def clean_cc_property_locations_property_city_col(
         "^SCHILLET PARK$", "SCHILLER PARK", regex=True
     )
     df["property_city"] = df["property_city"].astype("category")
+    return df
+
+
+def clean_cc_property_locations_fs_flood_risk_direction_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    flood_risk_map = {
+        -1: "Descreasing",
+        0: "Stationary",
+        1: "Increasing",
+    }
+    if "Stationary" not in df["fs_flood_risk_direction"].unique():
+        df["fs_flood_risk_direction"] = df["fs_flood_risk_direction"].map(
+            flood_risk_map
+        )
+    df["fs_flood_risk_direction"] = df["fs_flood_risk_direction"].astype(
+        "category"
+    )
+    return df
+
+
+def clean_cc_property_locations_drop_cols(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    drop_cols = [
+        "indicator_has_latlon",
+        "indicator_has_address",
+    ]
+    df = df.drop(columns=drop_cols)
+    return df
+
+
+def clean_cc_property_locations_data(
+    raw_file_path: Union[str, None] = None, force_repull: bool = False
+) -> gpd.GeoDataFrame:
+    df = get_raw_cc_residential_property_characteristics_data(
+        raw_file_path=raw_file_path, force_repull=force_repull
+    )
+    df = df.convert_dtypes()
+    df = clean_cc_property_locations_drop_cols(df)
+    df = clean_cc_property_locations_ohare_noise_col(df)
+    df = clean_cc_property_locations_floodplain_col(df)
+    df = clean_cc_property_locations_withinmr100_col(df)
+    df = clean_cc_property_locations_withinmr101300_col(df)
+    df = clean_cc_property_locations_property_city_col(df)
+    df = clean_cc_property_locations_fs_flood_risk_direction_col(df)
     return df
