@@ -1,6 +1,7 @@
 from typing import Dict, List, Union, Optional
 
 import pandas as pd
+from pandas.api.types import CategoricalDtype
 
 from utils import get_df_of_data_portal_data
 
@@ -107,6 +108,11 @@ def clean_cc_property_locations_property_city_col(
 def clean_cc_property_locations_fs_flood_risk_direction_col(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
+    """The property's flood risk direction represented in a numeric value
+    based on the change in risk for the location from 2020 to 2050 for the
+    climate model realization of the RCP 4.5 mid emissions scenario.
+    -1 = descreasing, 0 = stationary, 1 = increasing.
+    Data provided by First Street and academics at UPenn."""
     flood_risk_map = {
         -1: "Descreasing",
         0: "Stationary",
@@ -119,6 +125,21 @@ def clean_cc_property_locations_fs_flood_risk_direction_col(
     df["fs_flood_risk_direction"] = df["fs_flood_risk_direction"].astype(
         "category"
     )
+    return df
+
+
+def clean_cc_property_locations_fs_flood_factor_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """The property's First Street Flood Factor, a numeric integer from 1-10
+    (where 1 = minimal and 10 = extreme) based on flooding risk to the
+    building footprint. Flood risk is defined as a combination of cumulative
+    risk over 30 years and flood depth. Flood depth is calculated at the
+    lowest elevation of the building footprint (large"""
+    flood_factor_risk_map = CategoricalDtype(
+        categories=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], ordered=True
+    )
+    df["fs_flood_factor"] = df["fs_flood_factor"].astype(flood_factor_risk_map)
     return df
 
 
@@ -147,4 +168,5 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_withinmr101300_col(df)
     df = clean_cc_property_locations_property_city_col(df)
     df = clean_cc_property_locations_fs_flood_risk_direction_col(df)
+    df = clean_cc_property_locations_fs_flood_factor_col(df)
     return df
