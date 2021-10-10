@@ -224,6 +224,24 @@ def clean_cc_property_locations_mailing_state_col(
     return df
 
 
+def clean_cc_property_locations_school_hs_district_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Name of the high school district the property falls within, including
+    CPS catchment zones."""
+    df["school_hs_district"] = df["school_hs_district"].astype("category")
+    return df
+
+
+def clean_cc_property_locations_school_elem_district_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Name of the elementary/middle school district the property falls
+    within, including CPS catchment zones."""
+    df["school_elem_district"] = df["school_elem_district"].astype("category")
+    return df
+
+
 def clean_cc_property_locations_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -260,4 +278,6 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_ssa_name_col(df)
     df = clean_cc_property_locations_reps_dist_col(df)
     df = clean_cc_property_locations_mailing_state_col(df)
+    df = clean_cc_property_locations_school_hs_district_col(df)
+    df = clean_cc_property_locations_school_elem_district_col(df)
     return df
