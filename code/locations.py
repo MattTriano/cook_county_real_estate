@@ -143,6 +143,14 @@ def clean_cc_property_locations_fs_flood_factor_col(
     return df
 
 
+def clean_cc_property_locations_commissioner_dist_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Cook County Commissioner district"""
+    df["commissioner_dist"] = df["commissioner_dist"].astype("category")
+    return df
+
+
 def clean_cc_property_locations_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -169,4 +177,5 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_property_city_col(df)
     df = clean_cc_property_locations_fs_flood_risk_direction_col(df)
     df = clean_cc_property_locations_fs_flood_factor_col(df)
+    df = clean_cc_property_locations_commissioner_dist_col(df)
     return df
