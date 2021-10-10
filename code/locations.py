@@ -184,6 +184,14 @@ def clean_cc_property_locations_puma_col(
     return df
 
 
+def clean_cc_property_locations_ward_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """City of Chicago ward number"""
+    df["ward"] = df["ward"].astype("category")
+    return df
+
+
 def clean_cc_property_locations_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -215,4 +223,5 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_township_name_col(df)
     df = clean_cc_property_locations_township_col(df)
     df = clean_cc_property_locations_puma_col(df)
+    df = clean_cc_property_locations_ward_col(df)
     return df
