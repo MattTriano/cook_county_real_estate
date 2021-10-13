@@ -1010,6 +1010,15 @@ def clean_cc_residential_prop_chars_ohare_noise_col(
     return df
 
 
+def clean_cc_residential_prop_chars_floodplain_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Indicator for properties on a floodplain, defined as a FEMA Special
+    Flood Hazard Area."""
+    df["Floodplain"] = df["Floodplain"].astype("boolean")
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -1090,6 +1099,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_pure_market_sale_col(df)
     df = clean_cc_residential_prop_chars_town_and_neighborhood_col(df)
     df = clean_cc_residential_prop_chars_ohare_noise_col(df)
+    df = clean_cc_residential_prop_chars_floodplain_col(df)
     return df
 
 
