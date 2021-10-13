@@ -1001,6 +1001,15 @@ def clean_cc_residential_prop_chars_town_and_neighborhood_col(
     return df
 
 
+def clean_cc_residential_prop_chars_ohare_noise_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Indicator for the property under O'Hare approach flight path,
+    within 1/4 mile."""
+    df["O'Hare Noise"] = df["O'Hare Noise"].astype("boolean")
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -1080,6 +1089,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_residential_share_of_building_col(df)
     df = clean_cc_residential_prop_chars_pure_market_sale_col(df)
     df = clean_cc_residential_prop_chars_town_and_neighborhood_col(df)
+    df = clean_cc_residential_prop_chars_ohare_noise_col(df)
     return df
 
 
