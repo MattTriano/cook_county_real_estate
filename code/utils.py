@@ -1019,6 +1019,14 @@ def clean_cc_residential_prop_chars_floodplain_col(
     return df
 
 
+def clean_cc_residential_prop_chars_near_major_road_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Indicates whether the property is within 300 ft of a major road."""
+    df["Near Major Road"] = df["Near Major Road"].astype("boolean")
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -1100,6 +1108,7 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_town_and_neighborhood_col(df)
     df = clean_cc_residential_prop_chars_ohare_noise_col(df)
     df = clean_cc_residential_prop_chars_floodplain_col(df)
+    df = clean_cc_residential_prop_chars_near_major_road_col(df)
     return df
 
 
