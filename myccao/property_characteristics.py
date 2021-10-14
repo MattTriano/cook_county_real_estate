@@ -4,7 +4,11 @@ import geopandas as gpd
 import pandas as pd
 from pandas.api.types import CategoricalDtype
 
-from utils import get_df_of_data_portal_data
+from myccao.utils import (
+    get_df_of_data_portal_data,
+    conditionally_fill_col_vals
+)
+from myccao.locations import clean_cc_property_locations_data
 
 def get_raw_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
@@ -741,7 +745,7 @@ def clean_cc_residential_prop_chars_drop_cols(
     return df
 
 def fill_latlong_missing_cc_residential_prop_char_cols(cc_res_prop_char_df: pd.DataFrame) -> pd.DataFrame:
-    cc_prop_locs_df = locations.clean_cc_property_locations_data()
+    cc_prop_locs_df = clean_cc_property_locations_data()
     cc_res_prop_char_w_locs_df = pd.merge(
         left=cc_res_prop_char_df,
         right=cc_prop_locs_df,
