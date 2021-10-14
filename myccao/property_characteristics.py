@@ -6,9 +6,11 @@ from pandas.api.types import CategoricalDtype
 
 from myccao.utils import (
     get_df_of_data_portal_data,
-    conditionally_fill_col_vals
+    conditionally_fill_col_vals,
+    make_gdf_from_latlongs,
 )
 from myccao.locations import clean_cc_property_locations_data
+
 
 def get_raw_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
@@ -35,6 +37,7 @@ def clean_cc_residential_property_characteristics_data(
     condo_df = condo_df.reset_index(drop=True)
     non_condo_df = df.loc[~is_condo_mask].copy()
     non_condo_df = non_condo_df.reset_index(drop=True)
+
 
 def clean_cc_residential_prop_chars_property_class_col(
     df: pd.DataFrame,
@@ -744,7 +747,10 @@ def clean_cc_residential_prop_chars_drop_cols(
     df = df.drop(columns=drop_cols)
     return df
 
-def fill_latlong_missing_cc_residential_prop_char_cols(cc_res_prop_char_df: pd.DataFrame) -> pd.DataFrame:
+
+def fill_latlong_missing_cc_residential_prop_char_cols(
+    cc_res_prop_char_df: pd.DataFrame,
+) -> pd.DataFrame:
     cc_prop_locs_df = clean_cc_property_locations_data()
     cc_res_prop_char_w_locs_df = pd.merge(
         left=cc_res_prop_char_df,
@@ -752,45 +758,72 @@ def fill_latlong_missing_cc_residential_prop_char_cols(cc_res_prop_char_df: pd.D
         how="left",
         left_on="PIN",
         right_on="pin",
-        suffixes=("_char", "_loc")
-        )
+        suffixes=("_char", "_loc"),
+    )
     lon_null_mask = cc_res_prop_char_w_locs_df["longitude"].isnull()
     Lon_null_mask = cc_res_prop_char_w_locs_df["Longitude"].isnull()
     lat_null_mask = cc_res_prop_char_w_locs_df["latitude"].isnull()
     Lat_null_mask = cc_res_prop_char_w_locs_df["Latitude"].isnull()
     cc_res_prop_char_w_locs_df = conditionally_fill_col_vals(
-        df=cc_res_prop_char_w_locs_df, mask=(~lon_null_mask & Lon_null_mask),
-        null_col="Longitude", fill_col="longitude"
+        df=cc_res_prop_char_w_locs_df,
+        mask=(~lon_null_mask & Lon_null_mask),
+        null_col="Longitude",
+        fill_col="longitude",
     )
     cc_res_prop_char_w_locs_df = conditionally_fill_col_vals(
-        df=cc_res_prop_char_w_locs_df, mask=(~lat_null_mask & Lat_null_mask),
-        null_col="Latitude", fill_col="latitude"
+        df=cc_res_prop_char_w_locs_df,
+        mask=(~lat_null_mask & Lat_null_mask),
+        null_col="Latitude",
+        fill_col="latitude",
     )
     cc_res_prop_char_w_locs_df = conditionally_fill_col_vals(
-        df=cc_res_prop_char_w_locs_df, mask=(~lon_null_mask & Lon_null_mask),
-        null_col="O'Hare Noise", fill_col="ohare_noise"
+        df=cc_res_prop_char_w_locs_df,
+        mask=(~lon_null_mask & Lon_null_mask),
+        null_col="O'Hare Noise",
+        fill_col="ohare_noise",
     )
     cc_res_prop_char_w_locs_df = conditionally_fill_col_vals(
-        df=cc_res_prop_char_w_locs_df, mask=(~lon_null_mask & Lon_null_mask),
-        null_col="Floodplain", fill_col="floodplain"
+        df=cc_res_prop_char_w_locs_df,
+        mask=(~lon_null_mask & Lon_null_mask),
+        null_col="Floodplain",
+        fill_col="floodplain",
     )
     cc_res_prop_char_w_locs_df["withinmr300"] = (
-        (cc_res_prop_char_w_locs_df["withinmr100"]) | 
-        (cc_res_prop_char_w_locs_df["withinmr101300"])
-    )
+        cc_res_prop_char_w_locs_df["withinmr100"]
+    ) | (cc_res_prop_char_w_locs_df["withinmr101300"])
     cc_res_prop_char_w_locs_df = conditionally_fill_col_vals(
-        df=cc_res_prop_char_w_locs_df, mask=(~lon_null_mask & Lon_null_mask),
-        null_col="Near Major Road", fill_col="withinmr300"
+        df=cc_res_prop_char_w_locs_df,
+        mask=(~lon_null_mask & Lon_null_mask),
+        null_col="Near Major Road",
+        fill_col="withinmr300",
     )
     cc_res_prop_char_w_locs_df = cc_res_prop_char_w_locs_df.drop(
         columns=["withinmr300"]
     )
     cc_res_prop_char_w_locs_df = cc_res_prop_char_w_locs_df.loc[
-        (cc_res_prop_char_w_locs_df["Latitude"].notnull()) &
-        (cc_res_prop_char_w_locs_df["Longitude"].notnull())
+        (cc_res_prop_char_w_locs_df["Latitude"].notnull())
+        & (cc_res_prop_char_w_locs_df["Longitude"].notnull())
     ].copy()
-    cc_res_prop_char_w_locs_df= cc_res_prop_char_w_locs_df.reset_index(drop=True)
+    cc_res_prop_char_w_locs_df = cc_res_prop_char_w_locs_df.reset_index(
+        drop=True
+    )
     return cc_res_prop_char_w_locs_df
+
+
+def extend_cc_residential_prop_chars_ohare_noise_zone(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    gdf = gdf.copy()
+    ohare_noise_gdf = gdf.loc[(gdf["O'Hare Noise"])].copy()
+    ohare_noise_zone = ohare_noise_gdf.iloc[0:1].copy()
+    ohare_noise_zone = ohare_noise_zone.reset_index(drop=True)
+    ohare_noise_zone["geometry"] = ohare_noise_gdf[
+        "geometry"
+    ].unary_union.convex_hull
+
+    ohare_noise_zone_mask = gdf.within(ohare_noise_zone.loc[0, "geometry"])
+    gdf.loc[ohare_noise_zone_mask, "O'Hare Noise"] = True
+    return gdf
 
 
 def clean_cc_residential_property_characteristics_data(
@@ -856,4 +889,6 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_floodplain_col(df)
     df = clean_cc_residential_prop_chars_near_major_road_col(df)
     df = fill_latlong_missing_cc_residential_prop_char_cols(df)
+    gdf = make_gdf_from_latlongs(df)
+    gdf = extend_cc_residential_prop_chars_ohare_noise_zone(gdf)
     return df
