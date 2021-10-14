@@ -6,6 +6,7 @@ import pandas as pd
 from pandas.api.types import CategoricalDtype
 import geopandas as gpd
 
+
 def get_df_column_details(df: pd.DataFrame) -> pd.DataFrame:
     col_list = list(df.columns)
     n_rows = df.shape[0]
@@ -98,6 +99,19 @@ def get_gdf_of_data_portal_data(
         gdf.to_parquet(raw_file_path, compression="gzip")
     else:
         gdf = gpd.read_parquet(raw_file_path)
+    return gdf
+
+
+def make_gdf_from_latlongs(
+    df: pd.DataFrame,
+    lat_col: str = "Latitude",
+    long_col: str = "Longitude",
+    geom_col: str = "geometry",
+    latlong_crs: str = "EPSG:4326",
+) -> gpd.GeoDataFrame:
+    df = df.copy()
+    df[geom_col] = df.apply(lambda x: Point(x[long_col], x[lat_col]), axis=1)
+    gdf = gpd.GeoDataFrame(df, crs=latlong_crs)
     return gdf
 
 
@@ -256,9 +270,6 @@ def get_clean_cc_residential_neighborhood_geodata(
     return gdf
 
 
-
-
-
 def process_condo_property_characteristicts_data(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -313,17 +324,12 @@ def dtypeset_simple_categorical_cols(
     return df
 
 
-
-
-
 def conditionally_fill_col_vals(
     df: pd.DataFrame, mask: pd.Series, null_col: str, fill_col: str
 ) -> pd.DataFrame:
     df = df.copy()
     df.loc[mask, null_col] = df.loc[mask, fill_col].copy()
     return df
-
-
 
 
 def get_2010_cook_county_census_tract_gdf(
