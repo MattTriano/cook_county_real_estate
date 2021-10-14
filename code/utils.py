@@ -1047,6 +1047,14 @@ def clean_cc_residential_prop_chars_drop_cols(
     return df
 
 
+def conditionally_fill_col_vals(
+    df: pd.DataFrame, mask: pd.Series, null_col: str, fill_col: str
+) -> pd.DataFrame:
+    df = df.copy()
+    df.loc[mask, null_col] = df.loc[mask, fill_col].copy()
+    return df
+
+
 def clean_cc_residential_property_characteristics_data(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
