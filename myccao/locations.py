@@ -324,3 +324,23 @@ def get_raw_chicago_building_footprints_geodata(
         force_repull=force_repull,
     )
     return gdf
+
+
+def clean_chicago_building_footprint_bldg_create_date_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Date footprint created."""
+    gdf["BLDG_CREATE_DATE"] = gdf["date_bld_2"] + " " + gdf["time_bld_2"]
+    gdf["BLDG_CREATE_DATE"] = gdf["BLDG_CREATE_DATE"].str[:19]
+    return gdf
+
+
+def clean_chicago_building_footprint_geodata(
+    raw_file_path: Union[str, None] = None, force_repull: bool = False
+) -> gpd.GeoDataFrame:
+    gdf = get_raw_chicago_building_footprints_geodata(
+        raw_file_path=raw_file_path, force_repull=force_repull
+    )
+    gdf = gdf.convert_dtypes()
+    gdf = clean_chicago_building_footprint_bldg_create_date_col(gdf)
+    return gdf
