@@ -310,3 +310,17 @@ def clean_cc_property_locations_data(
     df = clean_cc_property_locations_nbhd_col(df)
     df = clean_cc_property_locations_tif_agencynum_col(df)
     return df
+
+
+def get_raw_chicago_building_footprints_geodata(
+    raw_file_path: Union[str, None] = None, force_repull: bool = False
+) -> gpd.GeoDataFrame:
+    """data dictionary:
+    https://data.cityofchicago.org/api/assets/003C600C-3A66-4605-8E7E-2477AAE95E16"""
+    gdf = get_gdf_of_data_portal_data(
+        file_name="cc_chicago_building_footprints.parquet.gzip",
+        url="https://data.cityofchicago.org/api/geospatial/hz9b-7nh8?method=export&format=Shapefile",
+        raw_file_path=raw_file_path,
+        force_repull=force_repull,
+    )
+    return gdf
