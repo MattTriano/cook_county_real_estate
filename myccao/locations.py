@@ -344,6 +344,16 @@ def clean_chicago_building_footprint_bldg_active_date_col(
     return gdf
 
 
+def clean_chicago_building_footprint_bldg_end_date_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Date footprint given DEMOLISHED status (Demolished buildings are removed from the
+    BUILDINGS layer and moved to a ‘DEMOLISHED’ layer."""
+    gdf["BLDG_END_DATE"] = gdf["date_bld_3"] + " " + gdf["time_bld_3"]
+    gdf["BLDG_END_DATE"] = gdf["BLDG_END_DATE"].str[:19]
+    return gdf
+
+
 def clean_chicago_building_footprint_geodata(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -353,4 +363,5 @@ def clean_chicago_building_footprint_geodata(
     gdf = gdf.convert_dtypes()
     gdf = clean_chicago_building_footprint_bldg_create_date_col(gdf)
     gdf = clean_chicago_building_footprint_bldg_active_date_col(gdf)
+    gdf = clean_chicago_building_footprint_bldg_end_date_col(gdf)
     return gdf
