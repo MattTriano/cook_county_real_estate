@@ -4,7 +4,7 @@ import geopandas as gpd
 import pandas as pd
 from pandas.api.types import CategoricalDtype
 
-from utils import get_df_of_data_portal_data
+from utils import get_df_of_data_portal_data, get_gdf_of_data_portal_data
 
 
 def get_raw_cc_property_locations_data(
@@ -338,7 +338,7 @@ def clean_chicago_building_footprint_bldg_create_date_col(
 def clean_chicago_building_footprint_bldg_active_date_col(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
-    """Date footprint given ACTIVE status"""
+    """Date footprint given ACTIVE status."""
     gdf["BLDG_ACTIVE_DATE"] = gdf["date_bldg_"] + " " + gdf["time_bldg_"]
     gdf["BLDG_ACTIVE_DATE"] = gdf["BLDG_ACTIVE_DATE"].str[:19]
     return gdf
@@ -347,10 +347,22 @@ def clean_chicago_building_footprint_bldg_active_date_col(
 def clean_chicago_building_footprint_bldg_end_date_col(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
-    """Date footprint given DEMOLISHED status (Demolished buildings are removed from the
-    BUILDINGS layer and moved to a ‘DEMOLISHED’ layer."""
+    """Date footprint given DEMOLISHED status (Demolished buildings are
+    removed from the BUILDINGS layer and moved to a ‘DEMOLISHED’ layer."""
     gdf["BLDG_END_DATE"] = gdf["date_bld_3"] + " " + gdf["time_bld_3"]
     gdf["BLDG_END_DATE"] = gdf["BLDG_END_DATE"].str[:19]
+    return gdf
+
+
+def clean_chicago_building_footprint_bldg_condition_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Not actively maintained."""
+    gdf["BLDG_CONDITION"] = gdf["bldg_condi"].copy()
+    gdf["BLDG_CONDITION"] = gdf["BLDG_CONDITION"].str.replace(
+        "UNNHABITABLE", "UNINHABITABLE"
+    )
+    gdf["BLDG_CONDITION"] = gdf["BLDG_CONDITION"].astype("category")
     return gdf
 
 
@@ -364,4 +376,5 @@ def clean_chicago_building_footprint_geodata(
     gdf = clean_chicago_building_footprint_bldg_create_date_col(gdf)
     gdf = clean_chicago_building_footprint_bldg_active_date_col(gdf)
     gdf = clean_chicago_building_footprint_bldg_end_date_col(gdf)
+    gdf = clean_chicago_building_footprint_bldg_condition_col(gdf)
     return gdf

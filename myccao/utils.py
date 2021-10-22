@@ -5,6 +5,7 @@ import missingno as msno
 import pandas as pd
 from pandas.api.types import CategoricalDtype
 import geopandas as gpd
+from shapely.geometry import Point
 
 
 def get_df_column_details(df: pd.DataFrame) -> pd.DataFrame:
