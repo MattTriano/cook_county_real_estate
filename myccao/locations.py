@@ -354,6 +354,15 @@ def clean_chicago_building_footprint_bldg_end_date_col(
     return gdf
 
 
+def clean_chicago_building_footprint_condition_as_of_date_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Not actively maintained."""
+    gdf["CONDITION_AS_OF_DATE"] = gdf["date_condi"] + " " + gdf["time_condi"]
+    gdf["CONDITION_AS_OF_DATE"] = gdf["CONDITION_AS_OF_DATE"].str[:19]
+    return gdf
+
+
 def clean_chicago_building_footprint_bldg_condition_col(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -376,5 +385,6 @@ def clean_chicago_building_footprint_geodata(
     gdf = clean_chicago_building_footprint_bldg_create_date_col(gdf)
     gdf = clean_chicago_building_footprint_bldg_active_date_col(gdf)
     gdf = clean_chicago_building_footprint_bldg_end_date_col(gdf)
+    gdf = clean_chicago_building_footprint_condition_as_of_date_col(gdf)
     gdf = clean_chicago_building_footprint_bldg_condition_col(gdf)
     return gdf
