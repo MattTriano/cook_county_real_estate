@@ -574,6 +574,33 @@ def clean_chicago_building_footprint_footprint_source_col(
     return gdf
 
 
+def clean_chicago_building_footprint_qc_userid_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Internal Use Only."""
+    gdf = gdf.rename(columns={"qc_userid": "QC_USERID"})
+    gdf["QC_USERID"] = gdf["QC_USERID"].astype("category")
+    return gdf
+
+
+def clean_chicago_building_footprint_edit_source_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Internal Use Only."""
+    gdf = gdf.rename(columns={"edit_sourc": "EDIT_SOURCE"})
+    gdf["EDIT_SOURCE"] = gdf["EDIT_SOURCE"].astype("category")
+    return gdf
+
+
+def clean_chicago_building_footprint_create_userid_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Internal Use Only."""
+    gdf = gdf.rename(columns={"create_use": "CREATE_USERID"})
+    gdf["CREATE_USERID"] = gdf["CREATE_USERID"].astype("category")
+    return gdf
+
+
 def clean_chicago_building_footprint_categorical_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -588,6 +615,9 @@ def clean_chicago_building_footprint_categorical_cols(
     gdf_ = clean_chicago_building_footprint_non_standard_col(gdf_)
     gdf_ = clean_chicago_building_footprint_vacancy_status_col(gdf_)
     gdf_ = clean_chicago_building_footprint_footprint_source_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_qc_userid_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_edit_source_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_create_userid_col(gdf_)
     return gdf_
 
 
