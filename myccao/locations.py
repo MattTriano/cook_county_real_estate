@@ -538,7 +538,6 @@ def clean_chicago_building_footprint_non_standard_col(
 ) -> gpd.GeoDataFrame:
     """Per documentation: Used for structures not usually considered
     ‘buildings’.  RESIDENTIAL GARAGE, MONUMENT, CTA PLATFORM, OTHER.
-
     """
     gdf = gdf.rename(columns={"non_standa": "NON_STANDARD"})
     non_standard_map = {
@@ -557,6 +556,15 @@ def clean_chicago_building_footprint_non_standard_col(
     return gdf
 
 
+def clean_chicago_building_footprint_vacancy_status_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Not actively maintained."""
+    gdf = gdf.rename(columns={"vacancy_st": "VACANCY_STATUS"})
+    gdf["VACANCY_STATUS"] = gdf["VACANCY_STATUS"].astype("category")
+    return gdf
+
+
 def clean_chicago_building_footprint_categorical_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -569,6 +577,7 @@ def clean_chicago_building_footprint_categorical_cols(
     gdf_ = clean_chicago_building_footprint_st_type1_col(gdf_)
     gdf_ = clean_chicago_building_footprint_st_name1_col(gdf_)
     gdf_ = clean_chicago_building_footprint_non_standard_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_vacancy_status_col(gdf_)
     return gdf_
 
 
