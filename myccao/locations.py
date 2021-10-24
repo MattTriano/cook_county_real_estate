@@ -381,6 +381,15 @@ def clean_chicago_building_footprint_edit_date_col(
     return gdf
 
 
+def clean_chicago_building_footprint_qc_date_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Internal Use Only."""
+    gdf["QC_DATE"] = gdf["date_qc_da"] + " " + gdf["time_qc_da"]
+    gdf["QC_DATE"] = gdf["QC_DATE"].str[:19]
+    return gdf
+
+
 def clean_chicago_building_footprint_bldg_condition_col(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -406,5 +415,6 @@ def clean_chicago_building_footprint_geodata(
     gdf = clean_chicago_building_footprint_condition_as_of_date_col(gdf)
     gdf = clean_chicago_building_footprint_demolished_date_col(gdf)
     gdf = clean_chicago_building_footprint_edit_date_col(gdf)
+    gdf = clean_chicago_building_footprint_qc_date_col(gdf)
     gdf = clean_chicago_building_footprint_bldg_condition_col(gdf)
     return gdf
