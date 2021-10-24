@@ -565,6 +565,15 @@ def clean_chicago_building_footprint_vacancy_status_col(
     return gdf
 
 
+def clean_chicago_building_footprint_footprint_source_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Internal Use Only."""
+    gdf = gdf.rename(columns={"footprint_": "FOOTPRINT_SOURCE"})
+    gdf["FOOTPRINT_SOURCE"] = gdf["FOOTPRINT_SOURCE"].astype("category")
+    return gdf
+
+
 def clean_chicago_building_footprint_categorical_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -578,6 +587,7 @@ def clean_chicago_building_footprint_categorical_cols(
     gdf_ = clean_chicago_building_footprint_st_name1_col(gdf_)
     gdf_ = clean_chicago_building_footprint_non_standard_col(gdf_)
     gdf_ = clean_chicago_building_footprint_vacancy_status_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_footprint_source_col(gdf_)
     return gdf_
 
 
@@ -585,7 +595,6 @@ def clean_chicago_building_footprint_drop_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     drop_cols = [
-        "bldg_condi",
         "z_coord",
     ]
     gdf = gdf.drop(columns=drop_cols)
