@@ -431,7 +431,7 @@ def clean_chicago_building_footprint_bldg_condition_col(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     """Per documentation: Not actively maintained."""
-    gdf["BLDG_CONDITION"] = gdf["bldg_condi"].copy()
+    gdf = gdf.rename(columns={"bldg_condi": "BLDG_CONDITION"})
     gdf["BLDG_CONDITION"] = gdf["BLDG_CONDITION"].str.replace(
         "UNNHABITABLE", "UNINHABITABLE"
     )
@@ -533,6 +533,30 @@ def clean_chicago_building_footprint_st_name1_col(
     return gdf
 
 
+def clean_chicago_building_footprint_non_standard_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Used for structures not usually considered
+    ‘buildings’.  RESIDENTIAL GARAGE, MONUMENT, CTA PLATFORM, OTHER.
+
+    """
+    gdf = gdf.rename(columns={"non_standa": "NON_STANDARD"})
+    non_standard_map = {
+        "RSGARAGE": "RESIDENTIAL GARAGE",
+        "MONUMENT": "MONUMENT",
+        "OTHER": "OTHER",
+        "CTAPLAT": "CTA PLATFORM",
+        "GARAGE": "RESIDENTIAL GARAGE",
+        "8500": pd._libs.missing.NA,
+    }
+    ns_mask = gdf["NON_STANDARD"].isin(non_standard_map.keys())
+    gdf.loc[ns_mask, "NON_STANDARD"] = gdf.loc[ns_mask, "NON_STANDARD"].map(
+        non_standard_map
+    )
+    gdf["NON_STANDARD"] = gdf["NON_STANDARD"].astype("category")
+    return gdf
+
+
 def clean_chicago_building_footprint_categorical_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -544,6 +568,7 @@ def clean_chicago_building_footprint_categorical_cols(
     gdf_ = clean_chicago_building_footprint_pre_dir1_col(gdf_)
     gdf_ = clean_chicago_building_footprint_st_type1_col(gdf_)
     gdf_ = clean_chicago_building_footprint_st_name1_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_non_standard_col(gdf_)
     return gdf_
 
 
@@ -551,6 +576,7 @@ def clean_chicago_building_footprint_drop_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     drop_cols = [
+        "bldg_condi",
         "z_coord",
     ]
     gdf = gdf.drop(columns=drop_cols)
