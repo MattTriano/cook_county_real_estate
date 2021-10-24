@@ -601,6 +601,15 @@ def clean_chicago_building_footprint_create_userid_col(
     return gdf
 
 
+def clean_chicago_building_footprint_edit_userid_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Internal Use Only."""
+    gdf = gdf.rename(columns={"edit_useri": "EDIT_USERID"})
+    gdf["EDIT_USERID"] = gdf["EDIT_USERID"].astype("category")
+    return gdf
+
+
 def clean_chicago_building_footprint_categorical_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -618,6 +627,7 @@ def clean_chicago_building_footprint_categorical_cols(
     gdf_ = clean_chicago_building_footprint_qc_userid_col(gdf_)
     gdf_ = clean_chicago_building_footprint_edit_source_col(gdf_)
     gdf_ = clean_chicago_building_footprint_create_userid_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_edit_userid_col(gdf_)
     return gdf_
 
 
