@@ -467,6 +467,15 @@ def clean_chicago_building_footprint_suf_dir1_col(
     return gdf
 
 
+def clean_chicago_building_footprint_pre_dir1_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Address Street Direction."""
+    gdf = gdf.rename(columns={"pre_dir1": "PRE_DIR1"})
+    gdf["PRE_DIR1"] = gdf["PRE_DIR1"].astype("category")
+    return gdf
+
+
 def clean_chicago_building_footprint_categorical_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -475,6 +484,7 @@ def clean_chicago_building_footprint_categorical_cols(
     gdf_ = clean_chicago_building_footprint_qc_source_col(gdf_)
     gdf_ = clean_chicago_building_footprint_bldg_status_col(gdf_)
     gdf_ = clean_chicago_building_footprint_suf_dir1_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_pre_dir1_col(gdf_)
     return gdf_
 
 
