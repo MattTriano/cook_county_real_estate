@@ -439,6 +439,34 @@ def clean_chicago_building_footprint_bldg_condition_col(
     return gdf
 
 
+def clean_chicago_building_footprint_qc_source_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Internal Use Only."""
+    gdf = gdf.rename(columns={"qc_source": "QC_SOURCE"})
+    gdf["QC_SOURCE"] = gdf["QC_SOURCE"].astype("category")
+    return gdf
+
+
+def clean_chicago_building_footprint_categorical_cols(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    gdf_ = gdf.copy()
+    gdf_ = clean_chicago_building_footprint_bldg_condition_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_qc_source_col(gdf_)
+    return gdf_
+
+
+def clean_chicago_building_footprint_drop_cols(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    drop_cols = [
+        "z_coord",
+    ]
+    gdf = gdf.drop(columns=drop_cols)
+    return gdf
+
+
 def clean_chicago_building_footprint_geodata(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -447,5 +475,5 @@ def clean_chicago_building_footprint_geodata(
     )
     gdf = gdf.convert_dtypes()
     gdf = clean_chicago_building_footprint_date_and_time_cols(gdf)
-    gdf = clean_chicago_building_footprint_bldg_condition_col(gdf)
+    gdf = clean_chicago_building_footprint_categorical_cols(gdf)
     return gdf
