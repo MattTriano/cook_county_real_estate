@@ -390,6 +390,43 @@ def clean_chicago_building_footprint_qc_date_col(
     return gdf
 
 
+def clean_chicago_building_footprint_date_and_time_cols(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    gdf_ = gdf.copy()
+    gdf_ = clean_chicago_building_footprint_bldg_create_date_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_bldg_active_date_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_bldg_end_date_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_condition_as_of_date_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_demolished_date_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_edit_date_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_qc_date_col(gdf_)
+    gdf_ = gdf_.drop(
+        columns=[
+            "date_bldg_",
+            "time_bldg_",
+            "date_bld_2",
+            "time_bld_2",
+            "date_bld_3",
+            "time_bld_3",
+            "date_condi",
+            "time_condi",
+            "date_demol",
+            "time_demol",
+            "date_edit_",
+            "time_edit_",
+            "date_qc_da",
+            "time_qc_da",
+        ]
+    )
+    date_cols = list(gdf_.head(2).filter(like="DATE").columns)
+    for date_col in date_cols:
+        gdf_[date_col] = pd.to_datetime(
+            gdf_[date_col], format="%Y-%m-%d %H:%M:%S"
+        )
+    return gdf_
+
+
 def clean_chicago_building_footprint_bldg_condition_col(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -409,12 +446,6 @@ def clean_chicago_building_footprint_geodata(
         raw_file_path=raw_file_path, force_repull=force_repull
     )
     gdf = gdf.convert_dtypes()
-    gdf = clean_chicago_building_footprint_bldg_create_date_col(gdf)
-    gdf = clean_chicago_building_footprint_bldg_active_date_col(gdf)
-    gdf = clean_chicago_building_footprint_bldg_end_date_col(gdf)
-    gdf = clean_chicago_building_footprint_condition_as_of_date_col(gdf)
-    gdf = clean_chicago_building_footprint_demolished_date_col(gdf)
-    gdf = clean_chicago_building_footprint_edit_date_col(gdf)
-    gdf = clean_chicago_building_footprint_qc_date_col(gdf)
+    gdf = clean_chicago_building_footprint_date_and_time_cols(gdf)
     gdf = clean_chicago_building_footprint_bldg_condition_col(gdf)
     return gdf
