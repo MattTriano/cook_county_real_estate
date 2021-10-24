@@ -479,7 +479,8 @@ def clean_chicago_building_footprint_pre_dir1_col(
 def clean_chicago_building_footprint_st_type1_col(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
-    """Per documentation: Address Street Direction.
+    """Per documentation: Address Street Type (see valid street types in
+    Street Center Line section)
     Proper types per:
         https://web.archive.org/web/20211024195208/https://www. \
         chicago.gov/dam/city/depts/doit/general/GIS/GIS_Data/Data_Sharing/ \
@@ -498,6 +499,40 @@ def clean_chicago_building_footprint_st_type1_col(
     return gdf
 
 
+def clean_chicago_building_footprint_st_name1_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Address Street Name.
+    Proper street names per:
+        https://data.cityofchicago.org/Transportation/Chicago-Street-Names/i6bp-fvbx
+    """
+    gdf = gdf.rename(columns={"st_name1": "ST_NAME1"})
+    st_name_map = {
+        "FOREST VIEW": "FORESTVIEW",
+        "MONTCLARE": "MONT CLARE",
+        "MC DOWELL": "MCDOWELL",
+        "MC VICKER": "MCVICKER",
+        "MC ALPIN": "MCALPIN",
+        "WILLETS": "WILLETTS",
+        "MC CLURG": "MCCLURG",
+        "MC LEAN": "MCLEAN",
+        "MC COOK": "MCCOOK",
+        "MADISON AVENUE PARK": "MADISON PARK",
+        "MC DOWELL": "MCDOWELL",
+        "MC CLELLAN": "MCCLELLAN",
+        "MC CORMICK": "MCCORMICK",
+        "MC CLURG": "MCCLURG",
+        "MC AULEY": "MCAULEY",
+        "MC LEOD": "MCLEOD",
+    }
+    bad_st_mask = gdf["ST_NAME1"].isin(st_name_map.keys())
+    gdf.loc[bad_st_mask, "ST_NAME1"] = gdf.loc[bad_st_mask, "ST_NAME1"].map(
+        st_name_map
+    )
+    gdf["ST_NAME1"] = gdf["ST_NAME1"].astype("category")
+    return gdf
+
+
 def clean_chicago_building_footprint_categorical_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -508,6 +543,7 @@ def clean_chicago_building_footprint_categorical_cols(
     gdf_ = clean_chicago_building_footprint_suf_dir1_col(gdf_)
     gdf_ = clean_chicago_building_footprint_pre_dir1_col(gdf_)
     gdf_ = clean_chicago_building_footprint_st_type1_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_st_name1_col(gdf_)
     return gdf_
 
 
