@@ -476,6 +476,28 @@ def clean_chicago_building_footprint_pre_dir1_col(
     return gdf
 
 
+def clean_chicago_building_footprint_st_type1_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Address Street Direction.
+    Proper types per:
+        https://web.archive.org/web/20211024195208/https://www. \
+        chicago.gov/dam/city/depts/doit/general/GIS/GIS_Data/Data_Sharing/ \
+        ChicagoGISAddressingStdsMay19.pdf
+    """
+    gdf = gdf.rename(columns={"st_type1": "ST_TYPE1"})
+    gdf.loc[gdf["ST_TYPE1"] == "AV", "ST_TYPE1"] = "AVE"
+    # at the time of implementation, there was only 1 'SD' record, and it
+    # should have been BLVD. I included the street name to reduce the chance
+    # of issues in the event of data drift in the future.
+    gdf.loc[
+        (gdf["ST_TYPE1"] == "SD") & (gdf["st_name1"] == "HUMBOLDT"), "ST_TYPE1"
+    ] = "BLVD"
+    gdf.loc[gdf["ST_TYPE1"] == "' '", "ST_TYPE1"] = pd._libs.missing.NA
+    gdf["ST_TYPE1"] = gdf["ST_TYPE1"].astype("category")
+    return gdf
+
+
 def clean_chicago_building_footprint_categorical_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -485,6 +507,7 @@ def clean_chicago_building_footprint_categorical_cols(
     gdf_ = clean_chicago_building_footprint_bldg_status_col(gdf_)
     gdf_ = clean_chicago_building_footprint_suf_dir1_col(gdf_)
     gdf_ = clean_chicago_building_footprint_pre_dir1_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_st_type1_col(gdf_)
     return gdf_
 
 
