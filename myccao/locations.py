@@ -658,6 +658,33 @@ def clean_chicago_building_footprint_f_add1_col(
     return gdf
 
 
+def clean_chicago_building_footprint_t_add1_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: High house number."""
+    gdf = gdf.rename(columns={"t_add1": "T_ADD1"})
+    gdf["T_ADD1"] = gdf["T_ADD1"].astype("Int32")
+    return gdf
+
+
+def clean_chicago_building_footprint_no_of_units_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Number of residential units."""
+    gdf = gdf.rename(columns={"no_of_unit": "NO_OF_UNITS"})
+    gdf["NO_OF_UNITS"] = gdf["NO_OF_UNITS"].astype("Int32")
+    return gdf
+
+
+def clean_chicago_building_footprint_year_built_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Year build."""
+    gdf = gdf.rename(columns={"year_built": "YEAR_BUILT"})
+    gdf["YEAR_BUILT"] = gdf["YEAR_BUILT"].astype("Int16")
+    return gdf
+
+
 def clean_chicago_building_footprint_integer_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -665,6 +692,9 @@ def clean_chicago_building_footprint_integer_cols(
     gdf_ = clean_chicago_building_footprint_stories_col(gdf_)
     gdf_ = clean_chicago_building_footprint_no_stories_below_col(gdf_)
     gdf_ = clean_chicago_building_footprint_f_add1_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_t_add1_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_no_of_units_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_year_built_col(gdf_)
     return gdf_
 
 
@@ -672,6 +702,7 @@ def clean_chicago_building_footprint_drop_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     drop_cols = [
+        "cdb_city_i",
         "z_coord",
     ]
     gdf = gdf.drop(columns=drop_cols)
@@ -688,4 +719,5 @@ def clean_chicago_building_footprint_geodata(
     gdf = clean_chicago_building_footprint_date_and_time_cols(gdf)
     gdf = clean_chicago_building_footprint_categorical_cols(gdf)
     gdf = clean_chicago_building_footprint_integer_cols(gdf)
+    gdf = clean_chicago_building_footprint_drop_cols(gdf)
     return gdf
