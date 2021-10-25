@@ -631,6 +631,43 @@ def clean_chicago_building_footprint_categorical_cols(
     return gdf_
 
 
+def clean_chicago_building_footprint_stories_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Number of stories."""
+    gdf = gdf.rename(columns={"stories": "STORIES"})
+    gdf["STORIES"] = gdf["STORIES"].astype("Int16")
+    return gdf
+
+
+def clean_chicago_building_footprint_no_stories_below_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Number of stories below ground."""
+    gdf = gdf.rename(columns={"no_stories": "NO_STORIES_BELOW"})
+    gdf["NO_STORIES_BELOW"] = gdf["NO_STORIES_BELOW"].astype("Int16")
+    return gdf
+
+
+def clean_chicago_building_footprint_f_add1_col(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Per documentation: Low house number."""
+    gdf = gdf.rename(columns={"f_add1": "F_ADD1"})
+    gdf["F_ADD1"] = gdf["F_ADD1"].astype("Int32")
+    return gdf
+
+
+def clean_chicago_building_footprint_integer_cols(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    gdf_ = gdf.copy()
+    gdf_ = clean_chicago_building_footprint_stories_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_no_stories_below_col(gdf_)
+    gdf_ = clean_chicago_building_footprint_f_add1_col(gdf_)
+    return gdf_
+
+
 def clean_chicago_building_footprint_drop_cols(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -650,4 +687,5 @@ def clean_chicago_building_footprint_geodata(
     gdf = gdf.convert_dtypes()
     gdf = clean_chicago_building_footprint_date_and_time_cols(gdf)
     gdf = clean_chicago_building_footprint_categorical_cols(gdf)
+    gdf = clean_chicago_building_footprint_integer_cols(gdf)
     return gdf
