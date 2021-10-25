@@ -709,6 +709,29 @@ def clean_chicago_building_footprint_drop_cols(
     return gdf
 
 
+def clean_chicago_building_footprint_colnames(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    gdf = gdf.rename(
+        columns={
+            "bldg_id": "BLDG_ID",
+            "bldg_name1": "BLDG_NAME1",
+            "bldg_name2": "BLDG_NAME2",
+            "bldg_sq_fo": "BLDG_SQ_FOOTAGE",
+            "comments": "COMMENTS",
+            "harris_str": "HARRIS_STRUCID",
+            "label_hous": "LABEL_HOUSE_NO",
+            "orig_bldg_": "ORIG_BLDG_ID",
+            "shape_area": "SHAPE_AREA",
+            "shape_len": "SHAPE_LEN",
+            "unit_name": "UNIT_NAME",
+            "x_coord": "X_COORD",
+            "y_coord": "Y_COORD",
+        }
+    )
+    return gdf
+
+
 def clean_chicago_building_footprint_geodata(
     raw_file_path: Union[str, None] = None, force_repull: bool = False
 ) -> gpd.GeoDataFrame:
@@ -720,4 +743,5 @@ def clean_chicago_building_footprint_geodata(
     gdf = clean_chicago_building_footprint_categorical_cols(gdf)
     gdf = clean_chicago_building_footprint_integer_cols(gdf)
     gdf = clean_chicago_building_footprint_drop_cols(gdf)
+    gdf = clean_chicago_building_footprint_colnames(gdf)
     return gdf
