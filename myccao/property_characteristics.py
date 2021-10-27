@@ -9,6 +9,7 @@ from myccao.utils import (
     get_df_of_data_portal_data,
     conditionally_fill_col_vals,
     make_gdf_from_latlongs,
+    download_zip_archive,
     prepare_raw_file_path,
 )
 from myccao.locations import clean_cc_property_locations_data
@@ -894,6 +895,25 @@ def clean_cc_residential_property_characteristics_data(
     gdf = make_gdf_from_latlongs(df)
     gdf = extend_cc_residential_prop_chars_ohare_noise_zone(gdf)
     return gdf
+
+
+def download_fema_firm_db_zip_archive_for_cook_county(
+    force_repull: bool = False,
+) -> None:
+    """To adapt to other counties, go to the below link, zoom in until panels
+    appear and click a panel in the county of interest. A tooltip will appear,
+    and while the panel is not county, there will be a download link for GIS
+    data for that panel's county. Copy that link and enter it as the `url`
+    parameter, with a `file_name` corresponding to the county.
+
+    https://hazards-fema.maps.arcgis.com/apps/webappviewer/index.html
+    """
+    download_zip_archive(
+        file_name="cook_county_fema_flood_insurance_rate_map_db_files.zip",
+        url="https://msc.fema.gov/portal/downloadProduct?productID=NFHL_17031C",
+        raw_file_path=None,
+        force_repull=force_repull,
+    )
 
 
 def get_fema_firm_db_table_file_name_mapper(
