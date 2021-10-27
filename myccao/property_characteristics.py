@@ -1,4 +1,5 @@
 from typing import Dict, List, Union, Optional
+from zipfile import ZipFile
 
 import geopandas as gpd
 import pandas as pd
@@ -8,6 +9,7 @@ from myccao.utils import (
     get_df_of_data_portal_data,
     conditionally_fill_col_vals,
     make_gdf_from_latlongs,
+    prepare_raw_file_path,
 )
 from myccao.locations import clean_cc_property_locations_data
 
@@ -933,3 +935,31 @@ def get_fema_firm_db_table_file_name_mapper(
         "S_XS": f"{prefix}__cross_section_lines.parquet.gzip",
     }
     return table_name_map
+
+
+def unpack_fema_firm_db_tables_from_zip_archive(
+    location_label: str = "cc",
+    zip_file_name: str = "cook_county_fema_flood_insurance_rate_map_db_files.zip",
+    raw_file_path: Union[str, None] = None,
+) -> None:
+    raw_file_path = prepare_raw_file_path(
+        file_name=zip_file_name, raw_file_path=raw_file_path
+    )
+    raw_file_dir = os.path.dirname(raw_file_path)
+
+    with ZipFile(raw_file_path) as zf:
+        zipped_files = zf.namelist()
+    shapefile_names = [
+        fn.split(".")[0] for fn in zipped_files if fn.lower().endswith(".shp")
+    ]
+
+    fema_table_name_mapper = get_fema_firm_db_table_file_name_mapper(
+        location_label=location_label
+    )
+    for shapefile_name in shapefile_names:
+        output_name = fema_table_name_mapper[shapefile_name]
+        output_path = os.path.join(raw_file_dir, output_name)
+        file_path = f"zip://{raw_file_path}!{shapefile_name}.shp"
+        fema_gdf = gpd.read_file(file_path)
+        fema_gdf = fema_gdf.convert_dtypes()
+        fema_gdf.to_parquet(output_path, compression="gzip")
