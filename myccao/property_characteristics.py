@@ -11,6 +11,7 @@ from myccao.utils import (
     make_gdf_from_latlongs,
     download_zip_archive,
     prepare_raw_file_path,
+    make_point_in_polygon_feature,
 )
 from myccao.locations import clean_cc_property_locations_data
 
@@ -983,3 +984,28 @@ def unpack_fema_firm_db_tables_from_zip_archive(
         fema_gdf = gpd.read_file(file_path)
         fema_gdf = fema_gdf.convert_dtypes()
         fema_gdf.to_parquet(output_path, compression="gzip")
+
+
+def make_fema_flood_features(
+    gdf: gpd.GeoDataFrame,
+    fema_file_name: str = "fema_firm_cc__flood_hazard_areas.parquet.gzip",
+) -> gpd.GeoDataFrame:
+    gdf_ = gdf.copy()
+    gdf_.sindex
+    raw_file_path = prepare_raw_file_path(file_name=fema_file_name)
+    fema_gdf = gpd.read_parquet(file_path)
+    if gdf_.crs != fema_gdf.crs:
+        fema_gdf = fema_gdf.to_crs(gdf_.crs)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_,
+        zone_gdf=fema_gdf.loc[
+            (fema_gdf["ZONE_SUBTY"] == "0.2 PCT ANNUAL CHANCE FLOOD HAZARD")
+        ].copy(),
+        zone_descr="FEMA_500yr_flood_risk",
+    )
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_,
+        zone_gdf=fema_gdf.loc[(fema_gdf["ZONE_SUBTY"] == "FLOODWAY")].copy(),
+        zone_descr="FEMA_floodway",
+    )
+    return gdf_
