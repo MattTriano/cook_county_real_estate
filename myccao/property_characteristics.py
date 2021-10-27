@@ -892,3 +892,44 @@ def clean_cc_residential_property_characteristics_data(
     gdf = make_gdf_from_latlongs(df)
     gdf = extend_cc_residential_prop_chars_ohare_noise_zone(gdf)
     return gdf
+
+
+def get_fema_firm_db_table_file_name_mapper(
+    location_label: str,
+) -> Dict[str, str]:
+    """For making FEMA FIRM db table names more interpretable. 
+    More details available at:
+    https://www.fema.gov/sites/default/files/documents/ \
+     fema_firm-database-technical-reference.pdf
+    """
+    prefix = f"fema_firm_{location_label}"
+    table_name_map = {
+        "S_BASE_INDEX": f"{prefix}__raster_base_map_index.parquet.gzip",
+        "S_BFE": f"{prefix}__base_flood_elev_lines.parquet.gzip",
+        "S_CST_GAGE": f"{prefix}__coastal_gauge_details.parquet.gzip",
+        "S_CST_TSCT_LN": f"{prefix}__coastal_transect_lines.parquet.gzip",
+        "S_FIRM_PAN": f"{prefix}__map_panel_data.parquet.gzip",
+        "S_FLD_HAZ_AR": f"{prefix}__flood_hazard_areas.parquet.gzip",
+        "S_FLD_HAZ_LN": f"{prefix}__flood_hazard_area_boundaries.parquet.gzip",
+        "S_GEN_STRUCT": f"{prefix}__flood_control_structures.parquet.gzip",
+        "S_HYDRO_REACH": f"{prefix}__hydrologic_connections.parquet.gzip",
+        "S_LABEL_LD": f"{prefix}__label_to_feature_lines.parquet.gzip",
+        "S_LABEL_PT": f"{prefix}__label_points_and_details.parquet.gzip",
+        "S_LEVEE": f"{prefix}__levee_centerlines.parquet.gzip",
+        "S_LIMWA": f"{prefix}__limit_of_moderate_wave_action.parquet.gzip",
+        "S_LOMR": f"{prefix}__lomrs_not_yet_in_firm.parquet.gzip",
+        "S_NODES": f"{prefix}__hydrologic_nodes.parquet.gzip",
+        "S_PFD_LN": f"{prefix}__primary_frontal_dune_lines.parquet.gzip",
+        "S_PLSS_AR": f"{prefix}__public_land_survey_system_areas.parquet.gzip",
+        "S_POL_AR": f"{prefix}__political_areas.parquet.gzip",
+        "S_PROFIL_BASLN": f"{prefix}__stream_centerlines_and_profiles.parquet.gzip",
+        "S_STN_START": f"{prefix}__stream_starting_points.parquet.gzip",
+        "S_SUBBASINS": f"{prefix}__subbasins.parquet.gzip",
+        "S_SUBMITTAL_INFO": f"{prefix}__survey_scope_info.parquet.gzip",
+        "S_TRNSPORT_LN": f"{prefix}__road_rails_transport_lines.parquet.gzip",
+        "S_TSCT_BASLN": f"{prefix}__coastal_transect_baselines.parquet.gzip",
+        "S_WTR_AR": f"{prefix}__hydrography_feature_areas.parquet.gzip",
+        "S_WTR_LN": f"{prefix}__hydrography_feature_lines.parquet.gzip",
+        "S_XS": f"{prefix}__cross_section_lines.parquet.gzip",
+    }
+    return table_name_map
