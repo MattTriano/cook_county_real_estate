@@ -512,3 +512,17 @@ def get_cc_census_tracts_split_by_neighborhood_geodata(
         gdf = split_cc_census_tracts_by_neighborhood()
     gdf.to_parquet(clean_file_path, compression="gzip")
     return gdf
+
+
+def make_point_in_polygon_feature(
+    gdf: gpd.GeoDataFrame,
+    zone_gdf: gpd.GeoDataFrame,
+    zone_descr: str,
+    geom_col: str = "geometry",
+) -> gpd.GeoDataFrame:
+    zone_union = zone_gdf[geom_col].unary_union
+    sindex_query_results = gdf.sindex.query(zone_union, predicate="intersects")
+    gdf[zone_descr] = False
+    gdf.loc[sindex_query_results, zone_descr] = True
+    gdf[zone_descr] = gdf[zone_descr].astype("boolean")
+    return gdf
