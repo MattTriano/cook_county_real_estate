@@ -891,4 +891,4 @@ def clean_cc_residential_property_characteristics_data(
     df = fill_latlong_missing_cc_residential_prop_char_cols(df)
     gdf = make_gdf_from_latlongs(df)
     gdf = extend_cc_residential_prop_chars_ohare_noise_zone(gdf)
-    return df
+    return gdf

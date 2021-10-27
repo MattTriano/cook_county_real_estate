@@ -52,6 +52,23 @@ def plot_highly_missingness_correlated_cols(
     msno.matrix(plot_df[view_cols])
 
 
+def prepare_raw_file_path(
+    file_name: str, raw_file_path: Union[str, None] = None
+) -> os.path:
+    if raw_file_path is None:
+        raw_file_dir = os.path.join(
+            os.path.expanduser("~"),
+            "projects",
+            "cook_county_real_estate",
+            "data_raw",
+        )
+        raw_file_path = os.path.join(raw_file_dir, file_name)
+    else:
+        raw_file_dir = os.path.dirname(raw_file_path)
+    os.makedirs(raw_file_dir, exist_ok=True)
+    return raw_file_path
+
+
 def get_df_of_data_portal_data(
     file_name: str,
     url: str,
