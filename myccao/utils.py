@@ -69,6 +69,19 @@ def prepare_raw_file_path(
     return raw_file_path
 
 
+def download_zip_archive(
+    file_name: str,
+    url: str,
+    raw_file_path: Union[str, None] = None,
+    force_repull: bool = False,
+) -> None:
+    raw_file_path = prepare_raw_file_path(
+        file_name=file_name, raw_file_path=raw_file_path
+    )
+    if not os.path.isfile(raw_file_path) or force_repull:
+        urlretrieve(url, raw_file_path)
+
+
 def get_df_of_data_portal_data(
     file_name: str,
     url: str,
