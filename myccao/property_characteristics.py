@@ -895,6 +895,7 @@ def clean_cc_residential_property_characteristics_data(
     df = fill_latlong_missing_cc_residential_prop_char_cols(df)
     gdf = make_gdf_from_latlongs(df)
     gdf = extend_cc_residential_prop_chars_ohare_noise_zone(gdf)
+    gdf = make_fema_flood_features(gdf)
     return gdf
 
 
@@ -993,7 +994,10 @@ def make_fema_flood_features(
     gdf_ = gdf.copy()
     gdf_.sindex
     raw_file_path = prepare_raw_file_path(file_name=fema_file_name)
-    fema_gdf = gpd.read_parquet(file_path)
+    if not os.path.isfile(raw_file_path):
+        download_fema_firm_db_zip_archive_for_cook_county()
+        unpack_fema_firm_db_tables_from_zip_archive()
+    fema_gdf = gpd.read_parquet(raw_file_path)
     if gdf_.crs != fema_gdf.crs:
         fema_gdf = fema_gdf.to_crs(gdf_.crs)
     gdf_ = make_point_in_polygon_feature(
