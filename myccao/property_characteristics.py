@@ -1013,3 +1013,22 @@ def make_fema_flood_features(
         zone_descr="FEMA_floodway",
     )
     return gdf_
+
+
+def make_within_quarter_mile_of_interstate_feature(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    """Per the paper at the link below, air pollution tapers off to background
+    levels around 400 meters from interstates, which is about a quarter mile.
+    https://web.archive.org/web/20210416065345/https://pubs.acs.org/doi/pdf/10.1021/acs.est.7b00891
+    """
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[
+        (cc_streets_gdf["HWYTYPE"] == "INTERSTATE")
+    ].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(1320)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_, zone_gdf=zone_gdf, zone_descr="within_qtr_mile_of_interstate"
+    )
+    return gdf_

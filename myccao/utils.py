@@ -518,9 +518,11 @@ def make_point_in_polygon_feature(
     gdf: gpd.GeoDataFrame,
     zone_gdf: gpd.GeoDataFrame,
     zone_descr: str,
-    geom_col: str = "geometry",
+    zone_geom_col: str = "geometry",
 ) -> gpd.GeoDataFrame:
-    zone_union = zone_gdf[geom_col].unary_union
+    if not gdf.has_sindex:
+        gdf.sindex
+    zone_union = zone_gdf[zone_geom_col].unary_union
     sindex_query_results = gdf.sindex.query(zone_union, predicate="intersects")
     gdf[zone_descr] = False
     gdf.loc[sindex_query_results, zone_descr] = True
