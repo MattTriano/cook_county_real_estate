@@ -897,6 +897,7 @@ def clean_cc_residential_property_characteristics_data(
     gdf = make_gdf_from_latlongs(df)
     gdf = extend_cc_residential_prop_chars_ohare_noise_zone(gdf)
     gdf = make_fema_flood_features(gdf)
+    gdf = make_road_features(gdf)
     return gdf
 
 
@@ -1070,4 +1071,41 @@ def make_within_400_feet_of_state_route_feature(
     gdf_ = make_point_in_polygon_feature(
         gdf=gdf_, zone_gdf=zone_gdf, zone_descr="within_400ft_of_a_state_route"
     )
+    return gdf_
+
+
+def make_within_n_feet_of_major_road_feature(
+    gdf_: gpd.GeoDataFrame,
+    cc_streets_gdf: Optional[gpd.GeoDataFrame] = None,
+    n_feet: float = 300,
+) -> gpd.GeoDataFrame:
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[
+        (cc_streets_gdf["MAJORROAD"] == "YES")
+    ].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(n_feet)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_,
+        zone_gdf=zone_gdf,
+        zone_descr=f"within_{n_feet}ft_of_a_major_road",
+    )
+    return gdf_
+
+
+def make_road_features(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    assert cc_streets_gdf.crs == "EPSG:3435"
+    gdf_["__geometry__"] = gdf_["geometry"].copy()
+    gdf_ = gdf_.set_geometry("__geometry__")
+    gdf_ = gdf_.to_crs("EPSG:3435")
+    gdf_ = make_within_quarter_mile_of_interstate_feature(gdf_)
+    gdf_ = make_within_600_feet_of_US_highway_feature(gdf_)
+    gdf_ = make_within_400_feet_of_state_route_feature(gdf_)
+    gdf_ = make_within_n_feet_of_major_road_feature(gdf_, n_feet=300)
+    gdf_ = make_within_n_feet_of_major_road_feature(gdf_, n_feet=100)
+
     return gdf_
