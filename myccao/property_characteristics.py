@@ -14,6 +14,7 @@ from myccao.utils import (
     make_point_in_polygon_feature,
 )
 from myccao.locations import clean_cc_property_locations_data
+from myccao import loaders
 
 
 def get_raw_cc_residential_property_characteristics_data(
@@ -1030,5 +1031,23 @@ def make_within_quarter_mile_of_interstate_feature(
     zone_gdf["geometry"] = zone_gdf["geometry"].buffer(1320)
     gdf_ = make_point_in_polygon_feature(
         gdf=gdf_, zone_gdf=zone_gdf, zone_descr="within_qtr_mile_of_interstate"
+    )
+    return gdf_
+
+
+def make_within_600_feet_of_US_highway_feature(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    """The 600 feet is rather arbitrary. It basically captures the 4 (or 2)
+    rows of properties nearest to the US highway.
+    """
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[
+        (cc_streets_gdf["HWYTYPE"] == "US HIGHWAY")
+    ].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(600)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_, zone_gdf=zone_gdf, zone_descr="within_600ft_of_a_us_highway"
     )
     return gdf_
