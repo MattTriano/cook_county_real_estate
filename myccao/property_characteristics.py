@@ -1051,3 +1051,23 @@ def make_within_600_feet_of_US_highway_feature(
         gdf=gdf_, zone_gdf=zone_gdf, zone_descr="within_600ft_of_a_us_highway"
     )
     return gdf_
+
+
+def make_within_400_feet_of_state_route_feature(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    """The 400 feet is rather arbitrary. It basically captures 1 (or 2)
+    rows of properties nearest to the state route. I currently live on a
+    state route in IL and it's occasionally pretty noisy on the street side
+    of my unit, but it's rarely so loud that I notice in the back of my unit.
+    """
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[
+        (cc_streets_gdf["HWYTYPE"] == "STATE ROUTE")
+    ].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(400)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_, zone_gdf=zone_gdf, zone_descr="within_400ft_of_a_state_route"
+    )
+    return gdf_
