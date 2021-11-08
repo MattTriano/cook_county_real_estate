@@ -1,260 +1,20 @@
-import os
 from typing import Dict, List, Union, Optional
+from zipfile import ZipFile
 
-import missingno as msno
+import geopandas as gpd
 import pandas as pd
 from pandas.api.types import CategoricalDtype
-import geopandas as gpd
 
-
-def get_df_column_details(df: pd.DataFrame) -> pd.DataFrame:
-    col_list = list(df.columns)
-    n_rows = df.shape[0]
-    df_details = pd.DataFrame(
-        {
-            "feature": [col for col in col_list],
-            "unique_vals": [df[col].nunique() for col in col_list],
-            "pct_unique": [
-                round(100 * df[col].nunique() / n_rows, 4) for col in col_list
-            ],
-            "null_vals": [df[col].isnull().sum() for col in col_list],
-            "pct_null": [
-                round(100 * df[col].isnull().sum() / n_rows, 4)
-                for col in col_list
-            ],
-        }
-    )
-    df_details = df_details.sort_values(by="unique_vals")
-    df_details = df_details.reset_index(drop=True)
-    return df_details
-
-
-def plot_highly_missingness_correlated_cols(
-    col: str, plot_df: pd.DataFrame, i: int = 0, positive_corr: bool = True
-) -> None:
-    plot_df = plot_df.copy()
-    plot_df = plot_df.sort_values(by=col)
-    plot_df = plot_df.reset_index(drop=True)
-
-    plot_notnull_df = plot_df.loc[plot_df[col].notnull()].copy()
-    plot_deets_df = get_df_column_details(plot_notnull_df)
-    plot_deets_df = plot_deets_df.sort_values(
-        by="pct_null", ascending=positive_corr
-    )
-    plot_deets_df = plot_deets_df.reset_index(drop=True)
-
-    view_cols = [col]
-    other_cols = list(plot_deets_df["feature"][i : i + 49])
-    other_cols = [c for c in other_cols if c != col]
-    view_cols.extend(other_cols)
-
-    msno.matrix(plot_df[view_cols])
-
-
-def get_df_of_data_portal_data(
-    file_name: str,
-    url: str,
-    raw_file_path: Union[str, None] = None,
-    force_repull: bool = False,
-) -> pd.DataFrame:
-    if raw_file_path is None:
-        raw_file_dir = os.path.join(
-            os.path.expanduser("~"),
-            "projects",
-            "cook_county_real_estate",
-            "data_raw",
-        )
-        raw_file_path = os.path.join(raw_file_dir, file_name)
-    else:
-        raw_file_dir = os.path.dirname(raw_file_path)
-    os.makedirs(raw_file_dir, exist_ok=True)
-
-    if not os.path.isfile(raw_file_path) or force_repull:
-        df = pd.read_csv(url, low_memory=False)
-        df.to_parquet(raw_file_path, compression="gzip")
-    else:
-        df = pd.read_parquet(raw_file_path)
-    return df
-
-
-def get_gdf_of_data_portal_data(
-    file_name: str,
-    url: str,
-    raw_file_path: Union[str, None] = None,
-    force_repull: bool = False,
-) -> gpd.GeoDataFrame:
-    if raw_file_path is None:
-        raw_file_dir = os.path.join(
-            os.path.expanduser("~"),
-            "projects",
-            "cook_county_real_estate",
-            "data_raw",
-        )
-        raw_file_path = os.path.join(raw_file_dir, file_name)
-    else:
-        raw_file_dir = os.path.dirname(raw_file_path)
-    os.makedirs(raw_file_dir, exist_ok=True)
-    if not os.path.isfile(raw_file_path) or force_repull:
-        gdf = gpd.read_file(url)
-        gdf.to_parquet(raw_file_path, compression="gzip")
-    else:
-        gdf = gpd.read_parquet(raw_file_path)
-    return gdf
-
-
-def get_raw_cc_real_estate_sales_data(
-    raw_file_path: Union[str, None] = None, force_repull: bool = False
-) -> pd.DataFrame:
-    df = get_df_of_data_portal_data(
-        file_name="cc_real_estate_sales.parquet.gzip",
-        url="https://datacatalog.cookcountyil.gov/api/views/93st-4bxh/rows.csv?accessType=DOWNLOAD",
-        raw_file_path=raw_file_path,
-        force_repull=force_repull,
-    )
-    return df
-
-
-def clean_cc_real_estate_sales_arms_length_col(
-    df: pd.DataFrame,
-) -> pd.DataFrame:
-    if 9 in df["Arms' length"].unique():
-        arms_length_map = {0: "no", 1: "yes", 9: "unknown"}
-        df["Arms' length"] = df["Arms' length"].map(arms_length_map)
-    df["Arms' length"] = df["Arms' length"].astype("category")
-    return df
-
-
-def clean_cc_real_estate_sales_deed_type_col(df: pd.DataFrame) -> pd.DataFrame:
-    if "Warranty" not in df["Deed type"].unique():
-        deed_type_map = {
-            "W": "Warranty",
-            "O": "Other",
-            "o": "Other",
-            "T": "Trustee",
-            "Y": "Trustee",
-        }
-        df["Deed type"] = df["Deed type"].map(deed_type_map)
-    df["Deed type"] = df["Deed type"].astype("category")
-    return df
-
-
-def clean_cc_real_estate_sales_date_cols(
-    df: pd.DataFrame, date_cols: Union[List, None] = None
-) -> pd.DataFrame:
-    if date_cols is None:
-        date_cols = df.head(2).filter(regex="[Dd][Aa][Tt][Ee]$").columns
-    for date_col in date_cols:
-        df[date_col] = pd.to_datetime(
-            df[date_col], format="%m/%d/%Y %I:%M:%S %p", errors="coerce"
-        )
-    return df
-
-
-def clean_cc_real_estate_sales_data(
-    raw_file_path: Union[str, None] = None, force_repull: bool = False
-) -> pd.DataFrame:
-    cc_sales_df = get_raw_cc_real_estate_sales_data(
-        raw_file_path=raw_file_path, force_repull=force_repull
-    )
-    cc_sales_df = clean_cc_real_estate_sales_arms_length_col(df=cc_sales_df)
-    cc_sales_df = clean_cc_real_estate_sales_deed_type_col(df=cc_sales_df)
-    cc_sales_df = clean_cc_real_estate_sales_date_cols(df=cc_sales_df)
-    cc_sales_df = cc_sales_df.convert_dtypes()
-    return cc_sales_df
-
-
-def get_clean_cc_real_estate_sales_data(
-    clean_file_path: Union[str, bool] = None,
-    raw_file_path: Union[str, bool] = None,
-    force_reclean: bool = False,
-    force_repull: bool = False,
-) -> pd.DataFrame:
-    if clean_file_path is None:
-        file_dir = os.path.join(
-            os.path.expanduser("~"),
-            "projects",
-            "cook_county_real_estate",
-            "data_clean",
-        )
-        clean_file_path = os.path.join(
-            file_dir, "cc_real_estate_sales.parquet.gzip"
-        )
-    if (
-        os.path.isfile(clean_file_path)
-        and not force_reclean
-        and not force_repull
-    ):
-        df = pd.read_parquet(clean_file_path)
-        return df
-    elif force_reclean and not force_repull:
-        df = clean_cc_real_estate_sales_data(raw_file_path=raw_file_path)
-    else:
-        df = clean_cc_real_estate_sales_data(
-            raw_file_path=raw_file_path, force_repull=force_repull
-        )
-    df.to_parquet(clean_file_path, compression="gzip")
-    return df
-
-
-def get_raw_cc_residential_neighborhood_geodata(
-    raw_file_path: Union[str, None] = None, force_repull: bool = False
-) -> gpd.GeoDataFrame:
-    gdf = get_gdf_of_data_portal_data(
-        file_name="cc_residential_neighborhood_boundaries.parquet.gzip",
-        url="https://datacatalog.cookcountyil.gov/api/geospatial/wyzt-dzf8?method=export&format=Shapefile",
-        raw_file_path=raw_file_path,
-        force_repull=force_repull,
-    )
-    return gdf
-
-
-def clean_cc_residential_neighborhood_geodata(
-    raw_file_path: Union[str, None] = None, force_repull: bool = False
-) -> gpd.GeoDataFrame:
-    gdf = get_raw_cc_residential_neighborhood_geodata(
-        raw_file_path=raw_file_path, force_repull=force_repull
-    )
-    gdf["triad_code"] = gdf["triad_code"].astype("category")
-    gdf["triad_name"] = gdf["triad_name"].astype("category")
-    gdf["township_c"] = gdf["township_c"].astype("category")
-    gdf["township_n"] = gdf["township_n"].astype("category")
-    gdf["nbhd"] = gdf["nbhd"].astype("category")
-    return gdf
-
-
-def get_clean_cc_residential_neighborhood_geodata(
-    clean_file_path: Union[str, bool] = None,
-    raw_file_path: Union[str, bool] = None,
-    force_reclean: bool = False,
-    force_repull: bool = False,
-) -> gpd.GeoDataFrame:
-    if clean_file_path is None:
-        file_dir = os.path.join(
-            os.path.expanduser("~"),
-            "projects",
-            "cook_county_real_estate",
-            "data_clean",
-        )
-        clean_file_path = os.path.join(
-            file_dir, "cc_residential_neighborhood_boundaries.parquet.gzip"
-        )
-    if (
-        os.path.isfile(clean_file_path)
-        and not force_reclean
-        and not force_repull
-    ):
-        gdf = gpd.read_parquet(clean_file_path)
-        return gdf
-    elif force_reclean and not force_repull:
-        gdf = clean_cc_residential_neighborhood_geodata(
-            raw_file_path=raw_file_path
-        )
-    else:
-        gdf = clean_cc_residential_neighborhood_geodata(
-            raw_file_path=raw_file_path, force_repull=force_repull
-        )
-    gdf.to_parquet(clean_file_path, compression="gzip")
-    return gdf
+from myccao.utils import (
+    get_df_of_data_portal_data,
+    conditionally_fill_col_vals,
+    make_gdf_from_latlongs,
+    download_zip_archive,
+    prepare_raw_file_path,
+    make_point_in_polygon_feature,
+)
+from myccao.locations import clean_cc_property_locations_data
+from myccao import loaders
 
 
 def get_raw_cc_residential_property_characteristics_data(
@@ -282,60 +42,6 @@ def clean_cc_residential_property_characteristics_data(
     condo_df = condo_df.reset_index(drop=True)
     non_condo_df = df.loc[~is_condo_mask].copy()
     non_condo_df = non_condo_df.reset_index(drop=True)
-
-
-def process_condo_property_characteristicts_data(
-    df: pd.DataFrame,
-) -> pd.DataFrame:
-    null_cols = [
-        "Building Square Feet",
-        "Renovation",
-        "Site Desireability",
-        "Garage 1 Size",
-        "Garage 1 Material",
-        "Garage 1 Attachment",
-        "Garage 1 Area",
-        "Garage 2 Size",
-        "Garage 2 Material",
-        "Construction Quality",
-        "Garage 2 Attachment",
-        "Other Improvements",
-        "Repair Condition",
-        "Multi Code",
-        "Number of Commercial Units",
-        "Square root of improvement size",
-        "Total Building Square Feet",
-        "Multi-Family Indicator",
-        "Improvement Size Squared",
-        "Garage 2 Area",
-        "Cathedral Ceiling",
-        "Garage indicator",
-        "Half Baths",
-        "Type of Residence",
-        "Apartments",
-        "Wall Material",
-        "Roof Material",
-        "Rooms",
-        "Bedrooms",
-        "Basement",
-        "Design Plan",
-        "Central Heating",
-        "Other Heating",
-        "Central Air",
-        "Fireplaces",
-        "Attic Type",
-        "Basement Finish",
-    ]
-    df = df.drop(columns=null_cols)
-    return df
-
-
-def dtypeset_simple_categorical_cols(
-    df: pd.DataFrame, col_list: List
-) -> pd.DataFrame:
-    for col in col_list:
-        df[col] = df[col].astype("category")
-    return df
 
 
 def clean_cc_residential_prop_chars_property_class_col(
@@ -1001,6 +707,32 @@ def clean_cc_residential_prop_chars_town_and_neighborhood_col(
     return df
 
 
+def clean_cc_residential_prop_chars_ohare_noise_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Indicator for the property under O'Hare approach flight path,
+    within 1/4 mile."""
+    df["O'Hare Noise"] = df["O'Hare Noise"].astype("boolean")
+    return df
+
+
+def clean_cc_residential_prop_chars_floodplain_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Indicator for properties on a floodplain, defined as a FEMA Special
+    Flood Hazard Area."""
+    df["Floodplain"] = df["Floodplain"].astype("boolean")
+    return df
+
+
+def clean_cc_residential_prop_chars_near_major_road_col(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Indicates whether the property is within 300 ft of a major road."""
+    df["Near Major Road"] = df["Near Major Road"].astype("boolean")
+    return df
+
+
 def clean_cc_residential_prop_chars_drop_cols(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -1019,6 +751,84 @@ def clean_cc_residential_prop_chars_drop_cols(
     ]
     df = df.drop(columns=drop_cols)
     return df
+
+
+def fill_latlong_missing_cc_residential_prop_char_cols(
+    cc_res_prop_char_df: pd.DataFrame,
+) -> pd.DataFrame:
+    cc_prop_locs_df = clean_cc_property_locations_data()
+    cc_res_prop_char_w_locs_df = pd.merge(
+        left=cc_res_prop_char_df,
+        right=cc_prop_locs_df,
+        how="left",
+        left_on="PIN",
+        right_on="pin",
+        suffixes=("_char", "_loc"),
+    )
+    lon_null_mask = cc_res_prop_char_w_locs_df["longitude"].isnull()
+    Lon_null_mask = cc_res_prop_char_w_locs_df["Longitude"].isnull()
+    lat_null_mask = cc_res_prop_char_w_locs_df["latitude"].isnull()
+    Lat_null_mask = cc_res_prop_char_w_locs_df["Latitude"].isnull()
+    cc_res_prop_char_w_locs_df = conditionally_fill_col_vals(
+        df=cc_res_prop_char_w_locs_df,
+        mask=(~lon_null_mask & Lon_null_mask),
+        null_col="Longitude",
+        fill_col="longitude",
+    )
+    cc_res_prop_char_w_locs_df = conditionally_fill_col_vals(
+        df=cc_res_prop_char_w_locs_df,
+        mask=(~lat_null_mask & Lat_null_mask),
+        null_col="Latitude",
+        fill_col="latitude",
+    )
+    cc_res_prop_char_w_locs_df = conditionally_fill_col_vals(
+        df=cc_res_prop_char_w_locs_df,
+        mask=(~lon_null_mask & Lon_null_mask),
+        null_col="O'Hare Noise",
+        fill_col="ohare_noise",
+    )
+    cc_res_prop_char_w_locs_df = conditionally_fill_col_vals(
+        df=cc_res_prop_char_w_locs_df,
+        mask=(~lon_null_mask & Lon_null_mask),
+        null_col="Floodplain",
+        fill_col="floodplain",
+    )
+    cc_res_prop_char_w_locs_df["withinmr300"] = (
+        cc_res_prop_char_w_locs_df["withinmr100"]
+    ) | (cc_res_prop_char_w_locs_df["withinmr101300"])
+    cc_res_prop_char_w_locs_df = conditionally_fill_col_vals(
+        df=cc_res_prop_char_w_locs_df,
+        mask=(~lon_null_mask & Lon_null_mask),
+        null_col="Near Major Road",
+        fill_col="withinmr300",
+    )
+    cc_res_prop_char_w_locs_df = cc_res_prop_char_w_locs_df.drop(
+        columns=["withinmr300"]
+    )
+    cc_res_prop_char_w_locs_df = cc_res_prop_char_w_locs_df.loc[
+        (cc_res_prop_char_w_locs_df["Latitude"].notnull())
+        & (cc_res_prop_char_w_locs_df["Longitude"].notnull())
+    ].copy()
+    cc_res_prop_char_w_locs_df = cc_res_prop_char_w_locs_df.reset_index(
+        drop=True
+    )
+    return cc_res_prop_char_w_locs_df
+
+
+def extend_cc_residential_prop_chars_ohare_noise_zone(
+    gdf: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    gdf = gdf.copy()
+    ohare_noise_gdf = gdf.loc[(gdf["O'Hare Noise"])].copy()
+    ohare_noise_zone = ohare_noise_gdf.iloc[0:1].copy()
+    ohare_noise_zone = ohare_noise_zone.reset_index(drop=True)
+    ohare_noise_zone["geometry"] = ohare_noise_gdf[
+        "geometry"
+    ].unary_union.convex_hull
+
+    ohare_noise_zone_mask = gdf.within(ohare_noise_zone.loc[0, "geometry"])
+    gdf.loc[ohare_noise_zone_mask, "O'Hare Noise"] = True
+    return gdf
 
 
 def clean_cc_residential_property_characteristics_data(
@@ -1080,155 +890,289 @@ def clean_cc_residential_property_characteristics_data(
     df = clean_cc_residential_prop_chars_residential_share_of_building_col(df)
     df = clean_cc_residential_prop_chars_pure_market_sale_col(df)
     df = clean_cc_residential_prop_chars_town_and_neighborhood_col(df)
-    return df
-
-
-def get_2010_cook_county_census_tract_gdf(
-    raw_file_path: Union[str, None] = None, force_repull: bool = False
-) -> gpd.GeoDataFrame:
-    gdf = get_gdf_of_data_portal_data(
-        file_name="census_tracts__cook_county_2010.parquet.gzip",
-        url="https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/TRACT/2010/tl_2020_17031_tract10.zip",
-        raw_file_path=raw_file_path,
-        force_repull=force_repull,
-    )
+    df = clean_cc_residential_prop_chars_ohare_noise_col(df)
+    df = clean_cc_residential_prop_chars_floodplain_col(df)
+    df = clean_cc_residential_prop_chars_near_major_road_col(df)
+    df = fill_latlong_missing_cc_residential_prop_char_cols(df)
+    gdf = make_gdf_from_latlongs(df)
+    gdf = extend_cc_residential_prop_chars_ohare_noise_zone(gdf)
+    gdf = make_fema_flood_features(gdf)
+    gdf = make_road_features(gdf)
     return gdf
 
 
-def get_2020_cook_county_census_tract_gdf(
-    raw_file_path: Union[str, None] = None, force_repull: bool = False
-) -> gpd.GeoDataFrame:
-    gdf = get_gdf_of_data_portal_data(
-        file_name="census_tracts__cook_county_2020.parquet.gzip",
-        url="https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/TRACT/2020/tl_2020_17031_tract20.zip",
-        raw_file_path=raw_file_path,
+def download_fema_firm_db_zip_archive_for_cook_county(
+    force_repull: bool = False,
+) -> None:
+    """To adapt to other counties, go to the below link, zoom in until panels
+    appear and click a panel in the county of interest. A tooltip will appear,
+    and while the panel is not county, there will be a download link for GIS
+    data for that panel's county. Copy that link and enter it as the `url`
+    parameter, with a `file_name` corresponding to the county.
+
+    https://hazards-fema.maps.arcgis.com/apps/webappviewer/index.html
+    """
+    download_zip_archive(
+        file_name="cook_county_fema_flood_insurance_rate_map_db_files.zip",
+        url="https://msc.fema.gov/portal/downloadProduct?productID=NFHL_17031C",
+        raw_file_path=None,
         force_repull=force_repull,
     )
-    return gdf
 
 
-def get_cook_county_boundary_gdf(
-    raw_file_path: Union[str, None] = None, force_repull: bool = False
-) -> gpd.GeoDataFrame:
-    # Not sure how durable the url
-    # 'https://hub-cookcountyil.opendata.arcgis.com/datasets/ea127f9e96b74677892722069c984198_1/explore'
-    # is, but I can deal with that if/when I have to.
-    gdf = get_gdf_of_data_portal_data(
-        file_name="cook_county_boundary_from_opendata.parquet.gzip",
-        url="https://opendata.arcgis.com/api/v3/datasets/ea127f9e96b74677892722069c984198_1/downloads/data?format=shp&spatialRefId=3435",
-        raw_file_path=raw_file_path,
-        force_repull=force_repull,
+def get_fema_firm_db_table_file_name_mapper(
+    location_label: str,
+) -> Dict[str, str]:
+    """For making FEMA FIRM db table names more interpretable. 
+    More details available at:
+    https://www.fema.gov/sites/default/files/documents/ \
+     fema_firm-database-technical-reference.pdf
+    """
+    prefix = f"fema_firm_{location_label}"
+    table_name_map = {
+        "S_BASE_INDEX": f"{prefix}__raster_base_map_index.parquet.gzip",
+        "S_BFE": f"{prefix}__base_flood_elev_lines.parquet.gzip",
+        "S_CST_GAGE": f"{prefix}__coastal_gauge_details.parquet.gzip",
+        "S_CST_TSCT_LN": f"{prefix}__coastal_transect_lines.parquet.gzip",
+        "S_FIRM_PAN": f"{prefix}__map_panel_data.parquet.gzip",
+        "S_FLD_HAZ_AR": f"{prefix}__flood_hazard_areas.parquet.gzip",
+        "S_FLD_HAZ_LN": f"{prefix}__flood_hazard_area_boundaries.parquet.gzip",
+        "S_GEN_STRUCT": f"{prefix}__flood_control_structures.parquet.gzip",
+        "S_HYDRO_REACH": f"{prefix}__hydrologic_connections.parquet.gzip",
+        "S_LABEL_LD": f"{prefix}__label_to_feature_lines.parquet.gzip",
+        "S_LABEL_PT": f"{prefix}__label_points_and_details.parquet.gzip",
+        "S_LEVEE": f"{prefix}__levee_centerlines.parquet.gzip",
+        "S_LIMWA": f"{prefix}__limit_of_moderate_wave_action.parquet.gzip",
+        "S_LOMR": f"{prefix}__lomrs_not_yet_in_firm.parquet.gzip",
+        "S_NODES": f"{prefix}__hydrologic_nodes.parquet.gzip",
+        "S_PFD_LN": f"{prefix}__primary_frontal_dune_lines.parquet.gzip",
+        "S_PLSS_AR": f"{prefix}__public_land_survey_system_areas.parquet.gzip",
+        "S_POL_AR": f"{prefix}__political_areas.parquet.gzip",
+        "S_PROFIL_BASLN": f"{prefix}__stream_centerlines_and_profiles.parquet.gzip",
+        "S_STN_START": f"{prefix}__stream_starting_points.parquet.gzip",
+        "S_SUBBASINS": f"{prefix}__subbasins.parquet.gzip",
+        "S_SUBMITTAL_INFO": f"{prefix}__survey_scope_info.parquet.gzip",
+        "S_TRNSPORT_LN": f"{prefix}__road_rails_transport_lines.parquet.gzip",
+        "S_TSCT_BASLN": f"{prefix}__coastal_transect_baselines.parquet.gzip",
+        "S_WTR_AR": f"{prefix}__hydrography_feature_areas.parquet.gzip",
+        "S_WTR_LN": f"{prefix}__hydrography_feature_lines.parquet.gzip",
+        "S_XS": f"{prefix}__cross_section_lines.parquet.gzip",
+    }
+    return table_name_map
+
+
+def unpack_fema_firm_db_tables_from_zip_archive(
+    location_label: str = "cc",
+    zip_file_name: str = "cook_county_fema_flood_insurance_rate_map_db_files.zip",
+    raw_file_path: Union[str, None] = None,
+) -> None:
+    raw_file_path = prepare_raw_file_path(
+        file_name=zip_file_name, raw_file_path=raw_file_path
     )
-    return gdf
+    raw_file_dir = os.path.dirname(raw_file_path)
 
-
-def split_cc_census_tracts_by_neighborhood() -> gpd.GeoDataFrame:
-    cc_neighborhood_gdf = get_clean_cc_residential_neighborhood_geodata()
-    cc_neighborhood_gdf = cc_neighborhood_gdf.drop_duplicates(
-        ignore_index=True
-    )
-    cc_neighborhood_gdf["township_n"] = cc_neighborhood_gdf[
-        "township_n"
-    ].str.upper()
-    cc_nbhd_gdf = cc_neighborhood_gdf[
-        ["nbhd", "town_nbhd", "township_n", "geometry"]
-    ].copy()
-
-    census_tract10_gdf = get_2010_cook_county_census_tract_gdf()
-    census_tract10_gdf = census_tract10_gdf.to_crs(cc_neighborhood_gdf.crs)
-    census_tract10_gdf = census_tract10_gdf.loc[
-        (
-            census_tract10_gdf["AWATER10"]
-            != census_tract10_gdf["AWATER10"].max()
-        )
-    ].copy()
-    census_tract10_gdf = census_tract10_gdf.reset_index(drop=True)
-
-    all_split_tracts = []
-    for tract_i in range(len(census_tract10_gdf)):
-        tract_geom = census_tract10_gdf.loc[tract_i:tract_i].copy()
-        cc_nbhd_gdf_geoms = []
-        intersecting_tracts = cc_nbhd_gdf.sjoin(
-            tract_geom, how="inner", predicate="intersects"
-        ).copy()
-        intersecting_tracts = intersecting_tracts.reset_index(drop=True)
-        for i in range(len(intersecting_tracts)):
-            nbhd_geom = intersecting_tracts.loc[i:i].copy()
-            tract_nbhd = tract_geom.overlay(nbhd_geom, how="intersection")
-            cc_nbhd_gdf_geoms.append(tract_nbhd)
-        cc_nbhd_gdf_geoms_gdf = pd.concat(cc_nbhd_gdf_geoms)
-        all_split_tracts.append(cc_nbhd_gdf_geoms_gdf)
-
-    new_gdf = pd.concat(all_split_tracts)
-    new_gdf = new_gdf.reset_index(drop=True)
-    assert (
-        new_gdf.loc[
-            (new_gdf["TRACTCE10_1"] == new_gdf["TRACTCE10_2"])
-            & (new_gdf["GEOID10_1"] == new_gdf["GEOID10_2"])
-            & (new_gdf["NAME10_1"] == new_gdf["NAME10_2"])
-            & (new_gdf["NAMELSAD10_1"] == new_gdf["NAMELSAD10_2"])
-            & (new_gdf["MTFCC10_1"] == new_gdf["MTFCC10_2"])
-            & (new_gdf["FUNCSTAT10_1"] == new_gdf["FUNCSTAT10_2"])
-            & (new_gdf["ALAND10_1"] == new_gdf["ALAND10_2"])
-            & (new_gdf["INTPTLAT10_1"] == new_gdf["INTPTLAT10_2"])
-            & (new_gdf["INTPTLON10_1"] == new_gdf["INTPTLON10_2"])
-            & (new_gdf["STATEFP10_1"] == new_gdf["STATEFP10_2"])
-            & (new_gdf["COUNTYFP10_1"] == new_gdf["COUNTYFP10_2"])
-        ].shape[0]
-        == new_gdf.shape[0]
-    )
-    drop_cols = [col for col in new_gdf.columns if col.endswith("_2")]
-    new_gdf = new_gdf.drop(columns=drop_cols)
-    new_gdf.columns = [col.replace("_1", "") for col in new_gdf.columns]
-    new_gdf = new_gdf.drop(
-        columns=[
-            "index_right",
-            "ALAND10",
-            "AWATER10",
-            "NAMELSAD10",
-            "FUNCSTAT10",
-            "MTFCC10",
-        ]
-    )
-
-    cat_cols = [
-        "STATEFP10",
-        "COUNTYFP10",
-        "TRACTCE10",
-        "GEOID10",
-        "NAME10",
-        "nbhd",
-        "town_nbhd",
-        "township_n",
+    with ZipFile(raw_file_path) as zf:
+        zipped_files = zf.namelist()
+    shapefile_names = [
+        fn.split(".")[0] for fn in zipped_files if fn.lower().endswith(".shp")
     ]
-    for cat_col in cat_cols:
-        new_gdf[cat_col] = new_gdf[cat_col].astype("category")
 
-    new_gdf["INTPTLAT10"] = new_gdf["INTPTLAT10"].astype(float)
-    new_gdf["INTPTLON10"] = new_gdf["INTPTLON10"].astype(float)
-    new_gdf["rep_point"] = new_gdf.geometry.representative_point()
-    return new_gdf
+    fema_table_name_mapper = get_fema_firm_db_table_file_name_mapper(
+        location_label=location_label
+    )
+    for shapefile_name in shapefile_names:
+        output_name = fema_table_name_mapper[shapefile_name]
+        output_path = os.path.join(raw_file_dir, output_name)
+        file_path = f"zip://{raw_file_path}!{shapefile_name}.shp"
+        fema_gdf = gpd.read_file(file_path)
+        fema_gdf = fema_gdf.convert_dtypes()
+        fema_gdf.to_parquet(output_path, compression="gzip")
 
 
-def get_cc_census_tracts_split_by_neighborhood_geodata(
-    clean_file_path: Union[str, bool] = None,
-    force_remake: bool = False,
+def make_fema_flood_features(
+    gdf: gpd.GeoDataFrame,
+    fema_file_name: str = "fema_firm_cc__flood_hazard_areas.parquet.gzip",
 ) -> gpd.GeoDataFrame:
-    if clean_file_path is None:
-        file_dir = os.path.join(
-            os.path.expanduser("~"),
-            "projects",
-            "cook_county_real_estate",
-            "data_clean",
-        )
-        clean_file_path = os.path.join(
-            file_dir,
-            "cc_census_tracts_split_by_neighborhood_boundaries.parquet.gzip",
-        )
-    if os.path.isfile(clean_file_path) and not force_remake:
-        gdf = gpd.read_parquet(clean_file_path)
-        return gdf
-    else:
-        gdf = split_cc_census_tracts_by_neighborhood()
-    gdf.to_parquet(clean_file_path, compression="gzip")
-    return gdf
+    gdf_ = gdf.copy()
+    gdf_.sindex
+    raw_file_path = prepare_raw_file_path(file_name=fema_file_name)
+    if not os.path.isfile(raw_file_path):
+        download_fema_firm_db_zip_archive_for_cook_county()
+        unpack_fema_firm_db_tables_from_zip_archive()
+    fema_gdf = gpd.read_parquet(raw_file_path)
+    if gdf_.crs != fema_gdf.crs:
+        fema_gdf = fema_gdf.to_crs(gdf_.crs)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_,
+        zone_gdf=fema_gdf.loc[
+            (fema_gdf["ZONE_SUBTY"] == "0.2 PCT ANNUAL CHANCE FLOOD HAZARD")
+        ].copy(),
+        zone_descr="FEMA_500yr_flood_risk",
+    )
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_,
+        zone_gdf=fema_gdf.loc[(fema_gdf["ZONE_SUBTY"] == "FLOODWAY")].copy(),
+        zone_descr="FEMA_floodway",
+    )
+    return gdf_
+
+
+def make_within_quarter_mile_of_interstate_feature(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    """Per the paper at the link below, air pollution tapers off to background
+    levels around 400 meters from interstates, which is about a quarter mile.
+    https://web.archive.org/web/20210416065345/https://pubs.acs.org/doi/pdf/10.1021/acs.est.7b00891
+    """
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[
+        (cc_streets_gdf["HWYTYPE"] == "INTERSTATE")
+    ].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(1320)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_, zone_gdf=zone_gdf, zone_descr="within_qtr_mile_of_interstate"
+    )
+    return gdf_
+
+
+def make_within_600_feet_of_US_highway_feature(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    """The 600 feet is rather arbitrary. It basically captures the 4 (or 2)
+    rows of properties nearest to the US highway.
+    """
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[
+        (cc_streets_gdf["HWYTYPE"] == "US HIGHWAY")
+    ].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(600)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_, zone_gdf=zone_gdf, zone_descr="within_600ft_of_a_us_highway"
+    )
+    return gdf_
+
+
+def make_within_400_feet_of_state_route_feature(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    """The 400 feet is rather arbitrary. It basically captures 1 (or 2)
+    rows of properties nearest to the state route. I currently live on a
+    state route in IL and it's occasionally pretty noisy on the street side
+    of my unit, but it's rarely so loud that I notice in the back of my unit.
+    """
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[
+        (cc_streets_gdf["HWYTYPE"] == "STATE ROUTE")
+    ].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(400)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_, zone_gdf=zone_gdf, zone_descr="within_400ft_of_a_state_route"
+    )
+    return gdf_
+
+
+def make_within_n_feet_of_major_road_feature(
+    gdf_: gpd.GeoDataFrame,
+    cc_streets_gdf: Optional[gpd.GeoDataFrame] = None,
+    n_feet: float = 300,
+) -> gpd.GeoDataFrame:
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[
+        (cc_streets_gdf["MAJORROAD"] == "YES")
+    ].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(n_feet)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_,
+        zone_gdf=zone_gdf,
+        zone_descr=f"within_{n_feet}ft_of_a_major_road",
+    )
+    return gdf_
+
+
+def make_adjacent_to_55_or_greater_mph_road_feature(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    """The 150 feet was determined by looking at the most densely packed
+    Cook County properties (which are in Chicago) and measuring the distance
+    between the road and alley between properties on a block. This gap is
+    about 150 feet, so it should do a pretty decent job at only marking the
+    property adjacent to the road.
+    """
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[(cc_streets_gdf["SpeedLimit"] >= 55)].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(150)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_,
+        zone_gdf=zone_gdf,
+        zone_descr="adjacent_to_55_or_greater_mph_road",
+    )
+    return gdf_
+
+
+def make_adjacent_to_25_to_55_mph_road_feature(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    """The 150 feet was determined by looking at the most densely packed
+    Cook County properties (which are in Chicago) and measuring the distance
+    between the road and alley between properties on a block. This gap is
+    about 150 feet, so it should do a pretty decent job at only marking the
+    property adjacent to the road.
+    """
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[
+        (cc_streets_gdf["SpeedLimit"] < 55)
+        & (cc_streets_gdf["SpeedLimit"] > 25)
+    ].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(150)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_, zone_gdf=zone_gdf, zone_descr="adjacent_to_25_to_55_mph_road"
+    )
+    return gdf_
+
+
+def make_adjacent_to_25_or_lower_mph_road_feature(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    """The 150 feet was determined by looking at the most densely packed
+    Cook County properties (which are in Chicago) and measuring the distance
+    between the road and alley between properties on a block. This gap is
+    about 150 feet, so it should do a pretty decent job at only marking the
+    property adjacent to the road.
+    """
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[(cc_streets_gdf["SpeedLimit"] <= 25)].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(150)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_,
+        zone_gdf=zone_gdf,
+        zone_descr="adjacent_to_25_or_lower_mph_road",
+    )
+    return gdf_
+
+
+def make_road_features(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    assert cc_streets_gdf.crs == "EPSG:3435"
+    gdf_["__geometry__"] = gdf_["geometry"].copy()
+    gdf_ = gdf_.set_geometry("__geometry__")
+    gdf_ = gdf_.to_crs("EPSG:3435")
+    gdf_ = make_within_quarter_mile_of_interstate_feature(gdf_)
+    gdf_ = make_within_600_feet_of_US_highway_feature(gdf_)
+    gdf_ = make_within_400_feet_of_state_route_feature(gdf_)
+    gdf_ = make_within_n_feet_of_major_road_feature(gdf_, n_feet=300)
+    gdf_ = make_within_n_feet_of_major_road_feature(gdf_, n_feet=100)
+    gdf_ = make_adjacent_to_55_or_greater_mph_road_feature(gdf_)
+    gdf_ = make_adjacent_to_25_to_55_mph_road_feature(gdf_)
+    gdf_ = make_adjacent_to_25_or_lower_mph_road_feature(gdf_)
+    gdf_ = gdf_.set_geometry("geometry")
+    return gdf_

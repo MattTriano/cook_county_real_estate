@@ -1,0 +1,11 @@
+/secrets
+.ipynb_checkpoints
+__pycache__
+
+data_raw/
+data_clean/
+*.egg-info
+
+credentials.yml
+
+notebooks/
