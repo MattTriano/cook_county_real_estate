@@ -1093,6 +1093,27 @@ def make_within_n_feet_of_major_road_feature(
     return gdf_
 
 
+def make_adjacent_to_55_or_greater_mph_road_feature(
+    gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
+) -> gpd.GeoDataFrame:
+    """The 150 feet was determined by looking at the most densely packed
+    Cook County properties (which are in Chicago) and measuring the distance
+    between the road and alley between properties on a block. This gap is
+    about 150 feet, so it should do a pretty decent job at only marking the
+    property adjacent to the road.
+    """
+    if cc_streets_gdf is None:
+        cc_streets_gdf = loaders.get_raw_cook_county_gis_streets()
+    zone_gdf = cc_streets_gdf.loc[(cc_streets_gdf["SpeedLimit"] >= 55)].copy()
+    zone_gdf["geometry"] = zone_gdf["geometry"].buffer(150)
+    gdf_ = make_point_in_polygon_feature(
+        gdf=gdf_,
+        zone_gdf=zone_gdf,
+        zone_descr="adjacent_to_55_or_greater_mph_road",
+    )
+    return gdf_
+
+
 def make_road_features(
     gdf_: gpd.GeoDataFrame, cc_streets_gdf: Optional[gpd.GeoDataFrame] = None
 ) -> gpd.GeoDataFrame:
@@ -1107,5 +1128,6 @@ def make_road_features(
     gdf_ = make_within_400_feet_of_state_route_feature(gdf_)
     gdf_ = make_within_n_feet_of_major_road_feature(gdf_, n_feet=300)
     gdf_ = make_within_n_feet_of_major_road_feature(gdf_, n_feet=100)
+    gdf_ = make_adjacent_to_55_or_greater_mph_road_feature(gdf_)
 
     return gdf_
